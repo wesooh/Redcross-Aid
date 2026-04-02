@@ -52,7 +52,7 @@ export function PaymentForm({ merchants }: { merchants: Merchant[] }) {
             <Label htmlFor="recipientId">Recipient ID (from QR Code)</Label>
             <Input id="recipientId" name="recipientId" placeholder="e.g., user-1" required />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="amount">Amount</Label>
               <Input id="amount" name="amount" type="number" step="0.01" min="0.01" placeholder="0.00" required />

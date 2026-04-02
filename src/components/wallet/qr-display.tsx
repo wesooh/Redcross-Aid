@@ -10,7 +10,7 @@ export function QrDisplay({ userId }: { userId: string }) {
       </CardHeader>
       <CardContent className="flex flex-col items-center justify-center gap-4">
         <div className="rounded-lg border-4 border-primary bg-white p-4">
-            <QrCode className="h-48 w-48 text-primary" strokeWidth={1} />
+            <QrCode className="h-36 w-36 sm:h-48 sm:w-48 text-primary" strokeWidth={1} />
         </div>
         <p className="text-sm text-muted-foreground font-mono bg-muted px-2 py-1 rounded">ID: {userId}</p>
       </CardContent>
