@@ -11,21 +11,43 @@ const FAKE_USER_ID = '123e4567-e89b-12d3-a456-426614174000'; // IMPORTANT: REPLA
 async function getWalletData() {
     const supabase = createSupabaseServerAdminClient();
 
-    const { data: wallet, error: walletError } = await supabase
+    // Fetch as array to handle multiple/zero cases gracefully
+    const { data: wallets, error: walletError } = await supabase
         .from('wallets')
         .select('id, balance')
-        .eq('profile_id', FAKE_USER_ID)
-        .single();
+        .eq('profile_id', FAKE_USER_ID);
     
-    if (walletError || !wallet) {
-        console.error("Error fetching wallet:", walletError?.message);
+    if (walletError) {
+        console.error("Error fetching wallet:", walletError.message);
         return {
             userId: FAKE_USER_ID,
             balance: 0,
             transactions: [],
-            error: "Could not load wallet data. Ensure the user ID is correct and a wallet exists."
+            error: "Could not load wallet data. There was a database error."
         };
     }
+
+    if (!wallets || wallets.length === 0) {
+        console.warn(`No wallet found for user: ${FAKE_USER_ID}`);
+        return {
+            userId: FAKE_USER_ID,
+            balance: 0,
+            transactions: [],
+            error: "No wallet found for this user. Please ensure the user ID is correct and they have been registered as a victim."
+        };
+    }
+
+    if (wallets.length > 1) {
+        console.error(`Inconsistency: Multiple wallets found for user: ${FAKE_USER_ID}`);
+        return {
+            userId: FAKE_USER_ID,
+            balance: 0,
+            transactions: [],
+            error: "Critical data error: Multiple wallets detected for a single user."
+        };
+    }
+
+    const wallet = wallets[0];
 
     const { data: transactions, error: txError } = await supabase
         .from('ledger')
@@ -36,7 +58,7 @@ async function getWalletData() {
 
     if (txError) {
         console.error("Error fetching transactions:", txError);
-        // Return partial data
+        // Return partial data but still show balance
     }
     
     // Map ledger entries to the Transaction type expected by the frontend
