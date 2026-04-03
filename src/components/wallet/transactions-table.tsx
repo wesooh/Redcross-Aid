@@ -7,7 +7,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import type { Transaction } from '@/lib/definitions';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -30,14 +29,14 @@ export function TransactionsTable({ transactions }: { transactions: Transaction[
           <TableBody>
             {transactions.map((tx) => (
               <TableRow key={tx.id}>
-                <TableCell className="font-medium">{format(new Date(tx.timestamp), 'MMM d, yyyy')}</TableCell>
+                <TableCell className="font-medium">{format(new Date(tx.created_at), 'MMM d, yyyy')}</TableCell>
                 <TableCell>
                   {tx.description}
                 </TableCell>
                 <TableCell
-                  className={cn('text-right font-semibold', tx.type === 'credit' ? 'text-green-600' : 'text-destructive')}
+                  className={cn('text-right font-semibold', tx.amount >= 0 ? 'text-green-600' : 'text-destructive')}
                 >
-                  {tx.type === 'credit' ? '+' : '-'}{new Intl.NumberFormat('en-US', {
+                  {tx.amount >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', {
                     style: 'currency',
                     currency: 'USD',
                   }).format(tx.amount)}

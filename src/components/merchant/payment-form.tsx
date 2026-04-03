@@ -50,7 +50,7 @@ export function PaymentForm({ merchants }: { merchants: Merchant[] }) {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="recipientId">Recipient ID (from QR Code)</Label>
-            <Input id="recipientId" name="recipientId" placeholder="e.g., user-1" required />
+            <Input id="recipientId" name="recipientId" placeholder="e.g., a UUID like 123e4567-..." required />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -58,7 +58,7 @@ export function PaymentForm({ merchants }: { merchants: Merchant[] }) {
               <Input id="amount" name="amount" type="number" step="0.01" min="0.01" placeholder="0.00" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="merchantId">Your Merchant ID</Label>
+              <Label htmlFor="merchantId">Your Merchant Profile</Label>
                <select
                 id="merchantId"
                 name="merchantId"
@@ -67,7 +67,7 @@ export function PaymentForm({ merchants }: { merchants: Merchant[] }) {
               >
                 {merchants.map((merchant) => (
                   <option key={merchant.id} value={merchant.id}>
-                    {merchant.name} ({merchant.id})
+                    {merchant.full_name}
                   </option>
                 ))}
               </select>

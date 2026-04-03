@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HandHeart, LayoutDashboard, Menu, MessageCircle, QrCode, UserCircle, Wallet } from 'lucide-react';
+import { HandHeart, LayoutDashboard, Menu, MessageCircle, QrCode, UserCircle, Wallet, UserPlus, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -19,6 +19,8 @@ const navItems = [
   { href: '/wallet', label: 'My Wallet', icon: Wallet },
   { href: '/merchant', label: 'Merchant Terminal', icon: QrCode },
   { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle },
+  { href: '/volunteer', label: 'Register Victim', icon: UserPlus },
+  { href: '/admin', label: 'Admin', icon: UserCog },
 ];
 
 export function AppHeader() {

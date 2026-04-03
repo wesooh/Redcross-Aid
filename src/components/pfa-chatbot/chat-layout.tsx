@@ -20,6 +20,10 @@ const initialMessage: Message = {
     content: "Hello, I'm a psychosocial first aid assistant. I'm here to listen and support you. How are you feeling today?",
 };
 
+// In a real app, this would come from an authentication context (e.g., Supabase Auth).
+// For now, please replace this with a valid 'victim' role UUID from your 'profiles' table.
+const FAKE_USER_ID = '123e4567-e89b-12d3-a456-426614174000'; // IMPORTANT: REPLACE WITH A REAL UUID
+
 export function ChatLayout() {
   const [messages, setMessages] = useState<Message[]>([initialMessage]);
   const [input, setInput] = useState('');
@@ -45,7 +49,7 @@ export function ChatLayout() {
     setInput('');
 
     startTransition(async () => {
-      const result = await handleUserMessage(input);
+      const result = await handleUserMessage(input, FAKE_USER_ID);
       if (result.response) {
         const aiMessage: Message = {
           id: Date.now() + 1,
@@ -75,6 +79,7 @@ export function ChatLayout() {
     <Card className="w-full max-w-3xl mx-auto h-[calc(100vh-10rem)] flex flex-col">
       <CardHeader>
         <h2 className="text-xl font-semibold">Psychosocial First Aid Support</h2>
+        <p className="text-sm text-muted-foreground">Chatting as user: <span className="font-mono text-xs bg-muted p-1 rounded">{FAKE_USER_ID}</span></p>
       </CardHeader>
       <CardContent ref={scrollAreaRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (

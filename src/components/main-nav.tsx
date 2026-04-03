@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HandHeart, LayoutDashboard, MessageCircle, QrCode, Wallet } from 'lucide-react';
+import { HandHeart, LayoutDashboard, MessageCircle, QrCode, Wallet, UserCog, UserPlus } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -12,6 +12,8 @@ const navItems = [
   { href: '/wallet', label: 'My Wallet', icon: Wallet },
   { href: '/merchant', label: 'Merchant Terminal', icon: QrCode },
   { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle },
+  { href: '/volunteer', label: 'Register Victim', icon: UserPlus },
+  { href: '/admin', label: 'Admin', icon: UserCog },
 ];
 
 export function MainNav() {

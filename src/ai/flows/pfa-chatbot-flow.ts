@@ -12,6 +12,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { createSupabaseServerAdminClient } from '@/lib/supabase/server-admin-client';
 
 // --- PII Redaction Utility ---
 /**
@@ -56,15 +57,6 @@ const triggerCounselorAlertTool = ai.defineTool(
     // For this implementation, we'll log to the console and simulate a response.
     console.warn(`🚨 Counselor Alert Triggered! Risk Score: ${input.riskScore}`);
     console.warn(`Original Redacted Message: "${input.message}"`);
-    // Simulate webhook call
-    // const response = await fetch('YOUR_WEBHOOK_URL', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(input),
-    // });
-    // if (!response.ok) {
-    //   return { status: 'failed', alertId: `error-${Date.now()}` };
-    // }
     return { status: 'success', alertId: `alert-${Date.now()}` };
   }
 );
@@ -112,6 +104,7 @@ const analyzeSentimentTool = ai.defineTool(
 
 const PFAChatbotInputSchema = z.object({
   message: z.string().describe('The user\'s message to the PFA chatbot.'),
+  userId: z.string().uuid().describe("The user's profile ID (must be a valid UUID)."),
 });
 export type PFAChatbotInput = z.infer<typeof PFAChatbotInputSchema>;
 
@@ -168,6 +161,27 @@ const pfaChatbotFlow = ai.defineFlow(
         riskScore: sentimentResult.riskScore,
       });
       escalated = true;
+
+      // 3.1. Save session to Supabase for admin review
+      try {
+        const supabase = createSupabaseServerAdminClient();
+        const { error: triageError } = await supabase.from('triage_sessions').insert({
+            victim_id: input.userId,
+            last_message: redactedMessage,
+            risk_score: sentimentResult.riskScore,
+            escalated: true,
+            notes: 'High risk score detected by AI.'
+        });
+
+        if (triageError) {
+            console.error("Failed to save triage session to Supabase:", triageError);
+            // Don't fail the whole flow, just log it. This is a background task.
+        } else {
+            console.log("Successfully saved high-risk triage session to Supabase.");
+        }
+      } catch (e) {
+          console.error("Exception when trying to save triage session:", e);
+      }
     }
 
     // 4. Generate chatbot response using the main PFA prompt

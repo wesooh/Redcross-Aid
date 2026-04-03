@@ -1,26 +1,32 @@
 export type Transaction = {
-  id: string;
+  id: number; // bigint
+  created_at: string;
+  wallet_id: string; // uuid
   amount: number;
-  type: 'credit' | 'debit';
-  description: string;
-  timestamp: string;
+  transaction_type: 'AID_DISBURSEMENT' | 'PURCHASE' | 'FUNDS_RETURN';
+  idempotency_key: string; // uuid
+  description: string | null;
+  metadata: any | null;
 };
 
 export type Wallet = {
-  id: string;
-  userId: string;
+  id: string; // uuid
+  created_at: string;
+  profile_id: string; // uuid
   balance: number;
-  transactions: Transaction[];
 };
 
 export type Merchant = {
-  id: string;
-  name: string;
-  walletId: string;
+  id: string; // uuid
+  full_name: string | null;
 };
 
-export type User = {
-  id: string;
-  name: string;
-  walletId: string;
+export type Profile = {
+  id: string; // uuid
+  created_at: string;
+  updated_at: string;
+  full_name: string | null;
+  role: 'admin' | 'volunteer' | 'merchant' | 'victim';
 };
+
+export type Victim = Profile & { role: 'victim' };
