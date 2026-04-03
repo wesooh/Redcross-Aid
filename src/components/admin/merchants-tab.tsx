@@ -8,8 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { registerMerchant } from '@/app/actions/admin';
+import type { Merchant } from '@/lib/definitions';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { format } from 'date-fns';
 
-export function MerchantsTab() {
+function RegisterMerchantForm() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [formKey, setFormKey] = useState(Date.now()); // To reset the form
@@ -39,7 +42,7 @@ export function MerchantsTab() {
   };
 
   return (
-    <Card key={formKey} className="max-w-md">
+    <Card key={formKey}>
       <form onSubmit={handleSubmit}>
         <CardHeader>
           <CardTitle>Register New Merchant</CardTitle>
@@ -64,4 +67,51 @@ export function MerchantsTab() {
       </form>
     </Card>
   );
+}
+
+
+function MerchantsList({ merchants }: { merchants: Merchant[] }) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Existing Merchants</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Phone Number</TableHead>
+                            <TableHead>Date Registered</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {merchants.map((merchant) => (
+                            <TableRow key={merchant.id}>
+                                <TableCell className="font-medium">{merchant.full_name}</TableCell>
+                                <TableCell>{merchant.phone_number || 'N/A'}</TableCell>
+                                <TableCell>{format(new Date(merchant.created_at), 'PPP')}</TableCell>
+                            </TableRow>
+                        ))}
+                        {merchants.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={3} className="text-center text-muted-foreground">
+                                    No merchants found.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    )
+}
+
+export function MerchantsTab({ merchants }: { merchants: Merchant[] }) {
+    return (
+        <div className="grid gap-8 md:grid-cols-2">
+            <RegisterMerchantForm />
+            <MerchantsList merchants={merchants} />
+        </div>
+    )
 }

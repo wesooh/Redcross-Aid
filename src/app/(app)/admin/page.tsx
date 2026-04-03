@@ -5,7 +5,7 @@ import { CampaignsTab } from "@/components/admin/campaigns-tab";
 import { MerchantsTab } from "@/components/admin/merchants-tab";
 import { VolunteersTab } from "@/components/admin/volunteers-tab";
 import { TriageTab } from "@/components/admin/triage-tab";
-import type { Victim, Campaign, TriageSession } from "@/lib/definitions";
+import type { Victim, Campaign, TriageSession, Merchant } from "@/lib/definitions";
 
 async function getAdminPageData() {
     const supabase = createSupabaseServerAdminClient();
@@ -28,14 +28,22 @@ async function getAdminPageData() {
         `)
         .order('created_at', { ascending: false });
 
+    const merchantsPromise = supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'merchant')
+        .order('created_at', { ascending: false });
+
     const [
         { data: victims, error: victimsError }, 
         { data: campaigns, error: campaignsError },
-        { data: triageSessions, error: triageError }
+        { data: triageSessions, error: triageError },
+        { data: merchants, error: merchantsError }
     ] = await Promise.all([
         victimsPromise,
         campaignsPromise,
         triagePromise,
+        merchantsPromise
     ]);
     
     if (victimsError) {
@@ -47,17 +55,21 @@ async function getAdminPageData() {
     if (triageError) {
         console.error('Error fetching triage sessions:', triageError);
     }
+    if (merchantsError) {
+        console.error('Error fetching merchants:', merchantsError);
+    }
 
     return { 
         victims: (victims || []) as Victim[],
         campaigns: (campaigns || []) as Campaign[],
         triageSessions: (triageSessions || []) as TriageSession[],
+        merchants: (merchants || []) as Merchant[],
     };
 }
 
 
 export default async function AdminPage() {
-    const { victims, campaigns, triageSessions } = await getAdminPageData();
+    const { victims, campaigns, triageSessions, merchants } = await getAdminPageData();
 
     return (
         <div className="container mx-auto">
@@ -76,7 +88,7 @@ export default async function AdminPage() {
                     <CampaignsTab campaigns={campaigns} />
                 </TabsContent>
                 <TabsContent value="merchants">
-                    <MerchantsTab />
+                    <MerchantsTab merchants={merchants} />
                 </TabsContent>
                 <TabsContent value="volunteers">
                     <VolunteersTab />

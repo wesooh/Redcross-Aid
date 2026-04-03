@@ -17,11 +17,6 @@ export type Wallet = {
   balance: number;
 };
 
-export type Merchant = {
-  id: string; // uuid
-  full_name: string | null;
-};
-
 export type Profile = {
   id: string; // uuid
   created_at: string;
@@ -31,6 +26,8 @@ export type Profile = {
   phone_number: string | null;
   role: 'admin' | 'volunteer' | 'merchant' | 'victim';
 };
+
+export type Merchant = Profile & { role: 'merchant' };
 
 export type Victim = Profile & { role: 'victim' };
 
