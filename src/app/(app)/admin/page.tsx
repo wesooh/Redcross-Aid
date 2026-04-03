@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DisbursementForm } from "@/components/admin/disbursement-form";
 import { CampaignsTab } from "@/components/admin/campaigns-tab";
 import { MerchantsTab } from "@/components/admin/merchants-tab";
+import { VolunteersTab } from "@/components/admin/volunteers-tab";
 import { TriageTab } from "@/components/admin/triage-tab";
 import type { Victim, Campaign, TriageSession } from "@/lib/definitions";
 
@@ -61,10 +62,11 @@ export default async function AdminPage() {
     return (
         <div className="container mx-auto">
             <Tabs defaultValue="disbursement">
-                <TabsList className="grid w-full max-w-xl grid-cols-4">
+                <TabsList className="grid w-full max-w-2xl grid-cols-5">
                     <TabsTrigger value="disbursement">Disburse Aid</TabsTrigger>
                     <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
                     <TabsTrigger value="merchants">Register Merchant</TabsTrigger>
+                    <TabsTrigger value="volunteers">Register Volunteer</TabsTrigger>
                     <TabsTrigger value="triage">PFA Triage</TabsTrigger>
                 </TabsList>
                 <TabsContent value="disbursement">
@@ -75,6 +77,9 @@ export default async function AdminPage() {
                 </TabsContent>
                 <TabsContent value="merchants">
                     <MerchantsTab />
+                </TabsContent>
+                <TabsContent value="volunteers">
+                    <VolunteersTab />
                 </TabsContent>
                 <TabsContent value="triage">
                     <TriageTab sessions={triageSessions} />

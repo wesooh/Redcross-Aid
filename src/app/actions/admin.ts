@@ -94,3 +94,33 @@ export async function registerMerchant(formData: { fullName: string, phoneNumber
   revalidatePath('/merchant'); // Revalidate merchant page to update dropdown
   return { success: `Successfully registered merchant ${fullName} with ID: ${data}` };
 }
+
+const VolunteerRegistrationSchema = z.object({
+  fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
+  phoneNumber: z.string().optional(),
+});
+
+export async function registerVolunteer(formData: { fullName: string, phoneNumber?: string }) {
+  const validatedFields = VolunteerRegistrationSchema.safeParse(formData);
+  if (!validatedFields.success) {
+    return {
+      error: 'Invalid data provided: ' + JSON.stringify(validatedFields.error.flatten().fieldErrors),
+    };
+  }
+
+  const { fullName, phoneNumber } = validatedFields.data;
+  const supabase = createSupabaseServerAdminClient();
+
+  const { data, error } = await supabase.rpc('register_volunteer', {
+    p_full_name: fullName,
+    p_phone_number: phoneNumber,
+  });
+
+  if (error) {
+    console.error('Error registering volunteer:', error);
+    return { error: 'Failed to register volunteer. ' + error.message };
+  }
+
+  revalidatePath('/admin');
+  return { success: `Successfully registered volunteer ${fullName} with ID: ${data}` };
+}

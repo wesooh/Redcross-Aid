@@ -19,7 +19,7 @@ const navItems = [
   { href: '/wallet', label: 'My Wallet', icon: Wallet },
   { href: '/merchant', label: 'Merchant Terminal', icon: QrCode },
   { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle },
-  { href: '/volunteer', label: 'Register Victim', icon: UserPlus },
+  { href: '/volunteer', label: 'Volunteer', icon: UserPlus },
   { href: '/admin', label: 'Admin', icon: UserCog },
 ];
 
