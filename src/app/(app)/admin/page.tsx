@@ -3,7 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DisbursementForm } from "@/components/admin/disbursement-form";
 import { CampaignsTab } from "@/components/admin/campaigns-tab";
 import { MerchantsTab } from "@/components/admin/merchants-tab";
-import type { Victim, Campaign } from "@/lib/definitions";
+import { TriageTab } from "@/components/admin/triage-tab";
+import type { Victim, Campaign, TriageSession } from "@/lib/definitions";
 
 async function getAdminPageData() {
     const supabase = createSupabaseServerAdminClient();
@@ -17,10 +18,23 @@ async function getAdminPageData() {
         .from('campaigns')
         .select('*')
         .order('created_at', { ascending: false });
+    
+    const triagePromise = supabase
+        .from('triage_sessions')
+        .select(`
+            *,
+            profiles ( full_name )
+        `)
+        .order('created_at', { ascending: false });
 
-    const [{ data: victims, error: victimsError }, { data: campaigns, error: campaignsError }] = await Promise.all([
+    const [
+        { data: victims, error: victimsError }, 
+        { data: campaigns, error: campaignsError },
+        { data: triageSessions, error: triageError }
+    ] = await Promise.all([
         victimsPromise,
         campaignsPromise,
+        triagePromise,
     ]);
     
     if (victimsError) {
@@ -29,24 +43,29 @@ async function getAdminPageData() {
     if (campaignsError) {
         console.error('Error fetching campaigns:', campaignsError);
     }
+    if (triageError) {
+        console.error('Error fetching triage sessions:', triageError);
+    }
 
     return { 
         victims: (victims || []) as Victim[],
         campaigns: (campaigns || []) as Campaign[],
+        triageSessions: (triageSessions || []) as TriageSession[],
     };
 }
 
 
 export default async function AdminPage() {
-    const { victims, campaigns } = await getAdminPageData();
+    const { victims, campaigns, triageSessions } = await getAdminPageData();
 
     return (
         <div className="container mx-auto">
             <Tabs defaultValue="disbursement">
-                <TabsList className="grid w-full max-w-md grid-cols-3">
+                <TabsList className="grid w-full max-w-xl grid-cols-4">
                     <TabsTrigger value="disbursement">Disburse Aid</TabsTrigger>
                     <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
                     <TabsTrigger value="merchants">Register Merchant</TabsTrigger>
+                    <TabsTrigger value="triage">PFA Triage</TabsTrigger>
                 </TabsList>
                 <TabsContent value="disbursement">
                     <DisbursementForm victims={victims} campaigns={campaigns} />
@@ -56,6 +75,9 @@ export default async function AdminPage() {
                 </TabsContent>
                 <TabsContent value="merchants">
                     <MerchantsTab />
+                </TabsContent>
+                <TabsContent value="triage">
+                    <TriageTab sessions={triageSessions} />
                 </TabsContent>
             </Tabs>
         </div>

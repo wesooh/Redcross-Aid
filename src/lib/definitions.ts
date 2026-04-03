@@ -40,3 +40,15 @@ export type Campaign = {
   name: string;
   description: string | null;
 };
+
+export type TriageSession = {
+    id: number;
+    created_at: string;
+    victim_id: string;
+    last_message: string | null;
+    risk_score: number | null;
+    escalated: boolean | null;
+    notes: string | null;
+    status: string;
+    profiles: { full_name: string | null } | null;
+};
