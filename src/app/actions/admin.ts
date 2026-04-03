@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerAdminClient } from '@/lib/supabase/server-admin-client';
+import Twilio from 'twilio';
 
 const DisbursementSchema = z.object({
   victimIds: z.array(z.string().uuid()),
@@ -33,6 +34,54 @@ export async function disburseAidToVictims(formData: { victimIds: string[], amou
     console.error('Disbursement RPC error:', error);
     return { error: error.message };
   }
+
+  // --- SMS Notification Logic ---
+  const { data: victims, error: victimsError } = await supabase
+    .from('profiles')
+    .select('full_name, phone_number')
+    .in('id', victimIds)
+    .not('phone_number', 'is', null);
+
+  if (victimsError) {
+    console.error('Error fetching victim profiles for SMS notification:', victimsError);
+    // Do not block the entire process if fetching for SMS fails.
+  }
+
+  if (victims && victims.length > 0) {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
+
+    if (!accountSid || !authToken || !twilioPhoneNumber || accountSid === 'YOUR_TWILIO_ACCOUNT_SID') {
+      console.warn('Twilio credentials are not set in .env. Skipping SMS notifications.');
+    } else {
+      try {
+        const client = new Twilio(accountSid, authToken);
+        const smsPromises = victims.map(victim => {
+          if (victim.phone_number) {
+            const message = `Habari ${victim.full_name || ''}, Red Cross has sent you ${amount} KES for food via ResilienceLink. Use your QR code at any partner shop.`;
+            return client.messages.create({
+              body: message,
+              from: twilioPhoneNumber,
+              to: victim.phone_number,
+            });
+          }
+          return null;
+        }).filter(Boolean);
+
+        if (smsPromises.length > 0) {
+            await Promise.all(smsPromises);
+            console.log(`Successfully initiated ${smsPromises.length} SMS notifications.`);
+        }
+
+      } catch (smsError: any) {
+        console.error('Twilio SMS sending failed:', smsError.message);
+        // Do not return error to UI, just log it. The primary action (disbursement) was successful.
+      }
+    }
+  }
+  // --- End SMS Notification Logic ---
+
 
   revalidatePath('/admin');
   revalidatePath('/wallet'); // affects victim wallets
