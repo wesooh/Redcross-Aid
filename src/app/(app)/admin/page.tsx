@@ -95,7 +95,7 @@ export default async function AdminPage() {
                     <VolunteersTab />
                 </TabsContent>
                 <TabsContent value="triage">
-                    <TriageTab sessions={triageSessions} />
+                    <TriageTab sessions={triageSessions} victims={victims} />
                 </TabsContent>
             </Tabs>
         </div>
