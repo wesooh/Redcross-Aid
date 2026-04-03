@@ -71,18 +71,31 @@ const sentimentAnalysisPrompt = ai.definePrompt({
       riskScore: z.number().min(0).max(1).describe('A risk score from 0 (no risk) to 1 (extreme risk).'),
     }).describe('The sentiment and risk score analysis.'),
   },
-  prompt: `Analyze the following text for overall sentiment and assign a numerical risk score from 0 (no risk) to 1 (extreme risk).
-  Consider psychological distress, urgency, and potential harm indicators.
-  The sentiment should be a single word or short phrase (e.g., "calm", "anxious", "depressed", "urgent").
+  prompt: `You are a crisis assessment AI. Analyze the following text for psychological distress, urgency, and potential for harm.
+  Assign a numerical risk score from 0.0 (no risk) to 1.0 (extreme risk).
+  A score above 0.85 indicates a critical need for human intervention.
+  Pay very close attention to any mention of suicide, self-harm, harm to others, extreme hopelessness, or feeling trapped. These must result in a high risk score (above 0.85).
+  The sentiment should be a single word or short phrase (e.g., "calm", "anxious", "depressed", "suicidal ideation").
   Output the result as a JSON object with 'sentiment' and 'riskScore' keys.
 
   Text: "{{{text}}}"
 
-  Output example:
+  Example for high risk:
+  Input: "I want to commit suicide"
+  Output:
   {
-    "sentiment": "distressed",
-    "riskScore": 0.9
+    "sentiment": "suicidal ideation",
+    "riskScore": 0.98
   }`,
+  config: {
+    safetySettings: [
+      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+    ],
+    responseMimeType: 'application/json',
+  }
 });
 
 // Tool to perform sentiment analysis. Called explicitly by the flow.

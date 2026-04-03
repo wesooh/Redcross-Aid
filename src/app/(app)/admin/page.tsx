@@ -26,6 +26,7 @@ async function getAdminPageData() {
             *,
             profiles ( full_name )
         `)
+        .order('risk_score', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
 
     const merchantsPromise = supabase
