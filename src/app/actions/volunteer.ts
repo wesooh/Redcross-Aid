@@ -6,9 +6,11 @@ import { createSupabaseServerAdminClient } from '@/lib/supabase/server-admin-cli
 
 const RegistrationSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
+  nationalId: z.string().min(5, { message: 'National ID must be at least 5 characters.'}),
+  phoneNumber: z.string().optional(),
 });
 
-export async function registerVictim(formData: { fullName: string }) {
+export async function registerVictim(formData: { fullName: string, nationalId: string, phoneNumber?: string }) {
   const validatedFields = RegistrationSchema.safeParse(formData);
 
   if (!validatedFields.success) {
@@ -17,12 +19,14 @@ export async function registerVictim(formData: { fullName: string }) {
     };
   }
 
-  const { fullName } = validatedFields.data;
+  const { fullName, nationalId, phoneNumber } = validatedFields.data;
   const supabase = createSupabaseServerAdminClient();
 
   // Use the RPC function to ensure atomic creation of profile and wallet
   const { data, error } = await supabase.rpc('register_victim', {
-    full_name: fullName
+    p_full_name: fullName,
+    p_national_id: nationalId,
+    p_phone_number: phoneNumber
   });
   
   if (error) {
