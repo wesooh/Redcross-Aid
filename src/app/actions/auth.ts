@@ -11,19 +11,43 @@ export async function login(prevState: any, formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
 
-  if (error) {
+  if (error || !data.user) {
     return {
       error: 'Could not authenticate user. Please check your credentials.',
     }
   }
 
+  // Fetch role right after login to perform a direct, role-based redirect.
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', data.user.id)
+    .single()
+
   revalidatePath('/', 'layout')
-  redirect('/')
+
+  switch(profile?.role) {
+    case 'admin':
+      redirect('/admin');
+      break;
+    case 'volunteer':
+      redirect('/volunteer');
+      break;
+    case 'merchant':
+      redirect('/merchant');
+      break;
+    case 'victim':
+      redirect('/dashboard');
+      break;
+    default:
+      redirect('/dashboard'); // Fallback for users without a role or other roles
+      break;
+  }
 }
 
 export async function logout() {
