@@ -2,11 +2,8 @@ import { Button } from '@/components/ui/button';
 import { HandHeart, Users, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function LandingPage() {
-  const heroImage = PlaceHolderImages.find(p => p.id === 'landing-hero');
-
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="absolute top-0 left-0 right-0 z-20 container mx-auto flex items-center justify-between py-4 px-4 sm:px-6 text-primary-foreground">
@@ -21,17 +18,14 @@ export default function LandingPage() {
 
       <main className="flex-1">
         <section className="relative flex flex-col items-center justify-center text-center h-[75vh] min-h-[500px] text-white overflow-hidden">
-          {heroImage && (
-             <Image
-              src={heroImage.imageUrl}
-              alt={heroImage.description}
+           <Image
+              src="/redcross.jpg"
+              alt="Red Cross humanitarian aid background"
               fill
               className="object-cover"
-              data-ai-hint={heroImage.imageHint}
               priority
             />
-          )}
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="relative z-10 container flex flex-col items-center px-4 sm:px-6">
             <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
               Smart Trust & PFA Triage
