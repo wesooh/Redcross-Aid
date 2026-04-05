@@ -1,32 +1,48 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { HandHeart, Users, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function LandingPage() {
+  const heroImage = PlaceHolderImages.find(p => p.id === 'landing-hero');
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="container mx-auto flex items-center justify-between py-4 px-4 sm:px-6">
+      <header className="absolute top-0 left-0 right-0 z-20 container mx-auto flex items-center justify-between py-4 px-4 sm:px-6 text-primary-foreground">
         <div className="flex items-center gap-2">
-          <HandHeart className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold">ResilienceLink</h1>
+          <HandHeart className="h-8 w-8 text-white" />
+          <h1 className="text-2xl font-bold text-white">ResilienceLink</h1>
         </div>
-        <Button asChild>
+        <Button asChild variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-primary">
           <Link href="/login">Login</Link>
         </Button>
       </header>
 
       <main className="flex-1">
-        <section className="container mx-auto flex flex-col items-center justify-center text-center py-20 px-4 sm:px-6">
-          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
-            Smart Trust & PFA Triage
-          </h2>
-          <p className="max-w-2xl text-lg text-muted-foreground mb-8">
-            A secure digital voucher ecosystem for aid victims and a bilingual AI triage system, powered by the Red Cross.
-          </p>
-          <Button asChild size="lg">
-            <Link href="/login">Access the Platform</Link>
-          </Button>
+        <section className="relative flex flex-col items-center justify-center text-center h-[75vh] min-h-[500px] text-white overflow-hidden">
+          {heroImage && (
+             <Image
+              src={heroImage.imageUrl}
+              alt={heroImage.description}
+              fill
+              className="object-cover"
+              data-ai-hint={heroImage.imageHint}
+              priority
+            />
+          )}
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="relative z-10 container flex flex-col items-center px-4 sm:px-6">
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
+              Smart Trust & PFA Triage
+            </h2>
+            <p className="max-w-2xl mx-auto text-lg text-neutral-200 mb-8">
+              A secure digital voucher ecosystem for aid victims and a bilingual AI triage system, powered by the Red Cross.
+            </p>
+            <Button asChild size="lg">
+              <Link href="/login">Access the Platform</Link>
+            </Button>
+          </div>
         </section>
 
         <section className="bg-muted py-20">

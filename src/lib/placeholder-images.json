@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "landing-hero",
+      "description": "A blurry background image representing humanitarian aid for the Red Cross themed landing page.",
+      "imageUrl": "https://picsum.photos/seed/redcross-bg/1920/1080",
+      "imageHint": "humanitarian aid"
+    }
+  ]
 }
