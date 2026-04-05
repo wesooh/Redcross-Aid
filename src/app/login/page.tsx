@@ -9,6 +9,7 @@ import { useActionState, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { HandHeart, Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 function LoginButton() {
     const { pending } = useFormStatus();
@@ -83,6 +84,11 @@ export default function LoginPage() {
                         )}
                         <LoginButton />
                     </form>
+                    <div className="mt-4 text-center text-sm">
+                        <Link href="/" className="underline hover:text-primary">
+                            Back to Landing Page
+                        </Link>
+                    </div>
                 </CardContent>
             </Card>
         </div>

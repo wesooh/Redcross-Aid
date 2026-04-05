@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HandHeart, LayoutDashboard, MessageCircle, QrCode, Wallet, UserCog, UserPlus } from 'lucide-react';
+import { HandHeart, LayoutDashboard, MessageCircle, QrCode, Wallet, UserCog, UserPlus, LogOut } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { logout } from '@/app/actions/auth';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -48,6 +49,21 @@ export function MainNav() {
               <TooltipContent side="right">{item.label}</TooltipContent>
             </Tooltip>
           ))}
+        </TooltipProvider>
+      </nav>
+      <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <form action={logout}>
+                        <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8">
+                            <LogOut className="h-5 w-5" />
+                            <span className="sr-only">Logout</span>
+                        </button>
+                    </form>
+                </TooltipTrigger>
+                <TooltipContent side="right">Logout</TooltipContent>
+            </Tooltip>
         </TooltipProvider>
       </nav>
     </aside>

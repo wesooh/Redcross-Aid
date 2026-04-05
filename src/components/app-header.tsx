@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { logout } from '@/app/actions/auth';
+import type { User } from '@supabase/supabase-js';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -24,19 +25,7 @@ const navItems = [
   { href: '/admin', label: 'Admin', icon: UserCog },
 ];
 
-function SignOutButton() {
-    return (
-      <form action={logout} className="w-full">
-        <button type="submit" className="w-full text-left">
-          <DropdownMenuItem>
-              Logout
-          </DropdownMenuItem>
-        </button>
-      </form>
-    );
-  }
-
-export function AppHeader() {
+export function AppHeader({ user }: { user: User }) {
   const pathname = usePathname();
   const pageTitle = navItems.find((item) => item.href === pathname)?.label || 'Dashboard';
 
@@ -83,12 +72,14 @@ export function AppHeader() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Settings</DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <SignOutButton />
+          <DropdownMenuItem onSelect={() => logout()} className="cursor-pointer">
+            Logout
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
