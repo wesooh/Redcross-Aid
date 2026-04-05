@@ -1,26 +1,24 @@
 import { BalanceCard } from "@/components/wallet/balance-card";
 import { QrDisplay } from "@/components/wallet/qr-display";
 import { TransactionsTable } from "@/components/wallet/transactions-table";
+import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { createSupabaseServerAdminClient } from "@/lib/supabase/server-admin-client";
 import type { Transaction } from "@/lib/definitions";
+import { redirect } from "next/navigation";
 
-// In a real app, this would come from an authentication context (e.g., Supabase Auth).
-// For now, please replace this with a valid 'victim' role UUID from your 'profiles' table.
-const FAKE_USER_ID = '123e4567-e89b-12d3-a456-426614174000'; // IMPORTANT: REPLACE WITH A REAL UUID
-
-async function getWalletData() {
+async function getWalletData(userId: string) {
     const supabase = createSupabaseServerAdminClient();
 
     // Fetch as array to handle multiple/zero cases gracefully
     const { data: wallets, error: walletError } = await supabase
         .from('wallets')
         .select('id, balance')
-        .eq('profile_id', FAKE_USER_ID);
+        .eq('profile_id', userId);
     
     if (walletError) {
         console.error("Error fetching wallet:", walletError.message);
         return {
-            userId: FAKE_USER_ID,
+            userId: userId,
             balance: 0,
             transactions: [],
             error: "Could not load wallet data. There was a database error."
@@ -28,19 +26,20 @@ async function getWalletData() {
     }
 
     if (!wallets || wallets.length === 0) {
-        console.warn(`No wallet found for user: ${FAKE_USER_ID}`);
+        console.warn(`No wallet found for user: ${userId}`);
+        // This might not be an error, but a user who isn't a victim
         return {
-            userId: FAKE_USER_ID,
+            userId: userId,
             balance: 0,
             transactions: [],
-            error: "No wallet found for this user. Please ensure the user ID is correct and they have been registered as a victim."
+            error: "No aid wallet is associated with your account. Only registered victims have wallets."
         };
     }
 
     if (wallets.length > 1) {
-        console.error(`Inconsistency: Multiple wallets found for user: ${FAKE_USER_ID}`);
+        console.error(`Inconsistency: Multiple wallets found for user: ${userId}`);
         return {
-            userId: FAKE_USER_ID,
+            userId: userId,
             balance: 0,
             transactions: [],
             error: "Critical data error: Multiple wallets detected for a single user."
@@ -69,7 +68,7 @@ async function getWalletData() {
     }));
 
     return {
-        userId: FAKE_USER_ID,
+        userId: userId,
         balance: wallet.balance,
         transactions: formattedTransactions,
     };
@@ -77,7 +76,14 @@ async function getWalletData() {
 
 
 export default async function WalletPage() {
-    const walletData = await getWalletData();
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        redirect('/login');
+    }
+
+    const walletData = await getWalletData(user.id);
 
     if (walletData.error) {
         return <div className="text-destructive font-semibold p-4 bg-destructive/10 rounded-md">{walletData.error}</div>

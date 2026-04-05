@@ -22,6 +22,7 @@ export type Profile = {
   created_at: string;
   updated_at: string;
   full_name: string | null;
+  email: string | null;
   national_id: string | null;
   phone_number: string | null;
   role: 'admin' | 'volunteer' | 'merchant' | 'victim';

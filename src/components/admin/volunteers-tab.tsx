@@ -18,10 +18,11 @@ export function VolunteersTab() {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const fullName = formData.get('fullName') as string;
+    const email = formData.get('email') as string;
     const phoneNumber = formData.get('phoneNumber') as string;
     
     startTransition(async () => {
-      const result = await registerVolunteer({ fullName, phoneNumber });
+      const result = await registerVolunteer({ fullName, email, phoneNumber });
       if (result.error) {
         toast({
           variant: 'destructive',
@@ -43,12 +44,16 @@ export function VolunteersTab() {
       <form onSubmit={handleSubmit}>
         <CardHeader>
           <CardTitle>Register New Volunteer</CardTitle>
-          <CardDescription>Onboard a new volunteer to the platform. They will be able to register aid recipients.</CardDescription>
+          <CardDescription>Onboard a new volunteer. They will be sent an email to verify their account and set a password.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="fullName">Volunteer's Full Name</Label>
             <Input id="fullName" name="fullName" placeholder="e.g., John Doe" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <Input id="email" name="email" type="email" placeholder="volunteer@example.com" required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="phoneNumber">Phone Number</Label>
@@ -58,7 +63,7 @@ export function VolunteersTab() {
         <CardFooter>
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Register Volunteer
+            Invite & Register Volunteer
           </Button>
         </CardFooter>
       </form>

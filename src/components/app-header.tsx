@@ -13,15 +13,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { logout } from '@/app/actions/auth';
 
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/wallet', label: 'My Wallet', icon: Wallet },
   { href: '/merchant', label: 'Merchant Terminal', icon: QrCode },
   { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle },
   { href: '/volunteer', label: 'Volunteer', icon: UserPlus },
   { href: '/admin', label: 'Admin', icon: UserCog },
 ];
+
+function SignOutButton() {
+    return (
+      <form action={logout} className="w-full">
+        <button type="submit" className="w-full text-left">
+          <DropdownMenuItem>
+              Logout
+          </DropdownMenuItem>
+        </button>
+      </form>
+    );
+  }
 
 export function AppHeader() {
   const pathname = usePathname();
@@ -39,7 +52,7 @@ export function AppHeader() {
         <SheetContent side="left" className="sm:max-w-xs">
           <nav className="grid gap-6 text-lg font-medium">
             <Link
-              href="/"
+              href="/dashboard"
               className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
             >
               <HandHeart className="h-5 w-5 transition-all group-hover:scale-110" />
@@ -75,7 +88,7 @@ export function AppHeader() {
           <DropdownMenuItem>Settings</DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Logout</DropdownMenuItem>
+          <SignOutButton />
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

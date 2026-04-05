@@ -1,8 +1,17 @@
 import { AppHeader } from '@/components/app-header';
 import { MainNav } from '@/components/main-nav';
 import { Toaster } from '@/components/ui/toaster';
+import { createSupabaseServerClient } from '@/lib/supabase/server-client';
+import { redirect } from 'next/navigation';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  const supabase = createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
       <MainNav />

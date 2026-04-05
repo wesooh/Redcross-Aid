@@ -146,10 +146,11 @@ export async function registerMerchant(formData: { fullName: string, phoneNumber
 
 const VolunteerRegistrationSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
+  email: z.string().email({ message: 'Please enter a valid email address.'}),
   phoneNumber: z.string().optional(),
 });
 
-export async function registerVolunteer(formData: { fullName: string, phoneNumber?: string }) {
+export async function registerVolunteer(formData: { fullName: string, email: string, phoneNumber?: string }) {
   const validatedFields = VolunteerRegistrationSchema.safeParse(formData);
   if (!validatedFields.success) {
     return {
@@ -157,19 +158,30 @@ export async function registerVolunteer(formData: { fullName: string, phoneNumbe
     };
   }
 
-  const { fullName, phoneNumber } = validatedFields.data;
+  const { fullName, email, phoneNumber } = validatedFields.data;
   const supabase = createSupabaseServerAdminClient();
 
+  // This will create the user in Supabase Auth and send them a magic link to set their password
+  const { data: { user }, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email);
+
+  if (inviteError) {
+    console.error('Error inviting volunteer:', inviteError);
+    return { error: 'Failed to invite volunteer. ' + inviteError.message };
+  }
+
+  // This RPC creates their profile in the public.profiles table
   const { data, error } = await supabase.rpc('register_volunteer', {
     p_full_name: fullName,
+    p_email: email, // Pass email to store in profile
     p_phone_number: phoneNumber,
   });
 
   if (error) {
-    console.error('Error registering volunteer:', error);
-    return { error: 'Failed to register volunteer. ' + error.message };
+    console.error('Error registering volunteer profile:', error);
+    // TODO: We should probably delete the invited user if the profile creation fails.
+    return { error: 'Failed to register volunteer profile. ' + error.message };
   }
 
   revalidatePath('/admin');
-  return { success: `Successfully registered volunteer ${fullName} with ID: ${data}` };
+  return { success: `Successfully invited and registered volunteer ${fullName}.` };
 }
