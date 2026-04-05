@@ -26,6 +26,7 @@ export type Profile = {
   national_id: string | null;
   phone_number: string | null;
   role: 'admin' | 'volunteer' | 'merchant' | 'victim';
+  county: string | null;
 };
 
 export type Merchant = Profile & { role: 'merchant' };

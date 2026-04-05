@@ -11,20 +11,27 @@ import { registerMerchant } from '@/app/actions/admin';
 import type { Merchant } from '@/lib/definitions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
+import { kenyanCounties } from '@/lib/data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 function RegisterMerchantForm() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [formKey, setFormKey] = useState(Date.now()); // To reset the form
+  const [selectedCounty, setSelectedCounty] = useState<string | undefined>();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!selectedCounty) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Please select a county.' });
+        return;
+    }
     const formData = new FormData(event.currentTarget);
     const fullName = formData.get('fullName') as string;
     const phoneNumber = formData.get('phoneNumber') as string;
     
     startTransition(async () => {
-      const result = await registerMerchant({ fullName, phoneNumber });
+      const result = await registerMerchant({ fullName, phoneNumber, county: selectedCounty });
       if (result.error) {
         toast({
           variant: 'destructive',
@@ -37,6 +44,7 @@ function RegisterMerchantForm() {
           description: result.success,
         });
         setFormKey(Date.now()); // Reset form
+        setSelectedCounty(undefined);
       }
     });
   };
@@ -52,6 +60,21 @@ function RegisterMerchantForm() {
           <div className="space-y-2">
             <Label htmlFor="fullName">Merchant's Full Name</Label>
             <Input id="fullName" name="fullName" placeholder="e.g., Juma's General Store" required />
+          </div>
+           <div className="space-y-2">
+            <Label htmlFor="county">County</Label>
+            <Select name="county" required onValueChange={setSelectedCounty} value={selectedCounty}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select merchant's county" />
+              </SelectTrigger>
+              <SelectContent>
+                {kenyanCounties.map((county) => (
+                  <SelectItem key={county} value={county}>
+                    {county}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="phoneNumber">Phone Number</Label>
@@ -81,6 +104,7 @@ function MerchantsList({ merchants }: { merchants: Merchant[] }) {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Name</TableHead>
+                            <TableHead>County</TableHead>
                             <TableHead>Phone Number</TableHead>
                             <TableHead>Date Registered</TableHead>
                         </TableRow>
@@ -89,13 +113,14 @@ function MerchantsList({ merchants }: { merchants: Merchant[] }) {
                         {merchants.map((merchant) => (
                             <TableRow key={merchant.id}>
                                 <TableCell className="font-medium">{merchant.full_name}</TableCell>
+                                <TableCell>{merchant.county || 'N/A'}</TableCell>
                                 <TableCell>{merchant.phone_number || 'N/A'}</TableCell>
                                 <TableCell>{format(new Date(merchant.created_at), 'PPP')}</TableCell>
                             </TableRow>
                         ))}
                         {merchants.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={3} className="text-center text-muted-foreground">
+                                <TableCell colSpan={4} className="text-center text-muted-foreground">
                                     No merchants found.
                                 </TableCell>
                             </TableRow>

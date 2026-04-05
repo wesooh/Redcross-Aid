@@ -8,21 +8,29 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { registerVolunteer } from '@/app/actions/admin';
+import { kenyanCounties } from '@/lib/data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 export function VolunteersTab() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [formKey, setFormKey] = useState(Date.now()); // To reset the form
+  const [selectedCounty, setSelectedCounty] = useState<string | undefined>();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!selectedCounty) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Please select a county.' });
+        return;
+    }
+
     const formData = new FormData(event.currentTarget);
     const fullName = formData.get('fullName') as string;
     const email = formData.get('email') as string;
     const phoneNumber = formData.get('phoneNumber') as string;
     
     startTransition(async () => {
-      const result = await registerVolunteer({ fullName, email, phoneNumber });
+      const result = await registerVolunteer({ fullName, email, phoneNumber, county: selectedCounty });
       if (result.error) {
         toast({
           variant: 'destructive',
@@ -35,6 +43,7 @@ export function VolunteersTab() {
           description: result.success,
         });
         setFormKey(Date.now()); // Reset form
+        setSelectedCounty(undefined);
       }
     });
   };
@@ -54,6 +63,21 @@ export function VolunteersTab() {
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
             <Input id="email" name="email" type="email" placeholder="volunteer@example.com" required />
+          </div>
+           <div className="space-y-2">
+            <Label htmlFor="county">County</Label>
+            <Select name="county" required onValueChange={setSelectedCounty} value={selectedCounty}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select volunteer's county" />
+              </SelectTrigger>
+              <SelectContent>
+                {kenyanCounties.map((county) => (
+                  <SelectItem key={county} value={county}>
+                    {county}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="phoneNumber">Phone Number</Label>

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerAdminClient } from '@/lib/supabase/server-admin-client';
 import Twilio from 'twilio';
+import { kenyanCounties } from '@/lib/data';
 
 const DisbursementSchema = z.object({
   victimIds: z.array(z.string().uuid()),
@@ -116,9 +117,10 @@ export async function createCampaign(formData: { name: string, description?: str
 const MerchantRegistrationSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
   phoneNumber: z.string().optional(),
+  county: z.string().refine(val => kenyanCounties.includes(val), { message: "Invalid county selected." }),
 });
 
-export async function registerMerchant(formData: { fullName: string, phoneNumber?: string }) {
+export async function registerMerchant(formData: { fullName: string, phoneNumber?: string, county: string }) {
   const validatedFields = MerchantRegistrationSchema.safeParse(formData);
   if (!validatedFields.success) {
     return {
@@ -126,10 +128,10 @@ export async function registerMerchant(formData: { fullName: string, phoneNumber
     };
   }
 
-  const { fullName, phoneNumber } = validatedFields.data;
+  const { fullName, phoneNumber, county } = validatedFields.data;
   const supabase = createSupabaseServerAdminClient();
 
-  const { data, error } = await supabase.rpc('register_merchant', {
+  const { data: merchantId, error } = await supabase.rpc('register_merchant', {
     p_full_name: fullName,
     p_phone_number: phoneNumber,
   });
@@ -139,18 +141,31 @@ export async function registerMerchant(formData: { fullName: string, phoneNumber
     return { error: 'Failed to register merchant. ' + error.message };
   }
 
+  if (merchantId) {
+    const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ county: county })
+        .eq('id', merchantId);
+    
+    if (updateError) {
+        console.error('Error updating merchant county:', updateError);
+        // Don't fail the whole process, just log it.
+    }
+  }
+
   revalidatePath('/admin'); // Revalidate admin to show new merchants if listed
   revalidatePath('/merchant'); // Revalidate merchant page to update dropdown
-  return { success: `Successfully registered merchant ${fullName} with ID: ${data}` };
+  return { success: `Successfully registered merchant ${fullName} with ID: ${merchantId}` };
 }
 
 const VolunteerRegistrationSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email address.'}),
   phoneNumber: z.string().optional(),
+  county: z.string().refine(val => kenyanCounties.includes(val), { message: "Invalid county selected." }),
 });
 
-export async function registerVolunteer(formData: { fullName: string, email: string, phoneNumber?: string }) {
+export async function registerVolunteer(formData: { fullName: string, email: string, phoneNumber?: string, county: string }) {
   const validatedFields = VolunteerRegistrationSchema.safeParse(formData);
   if (!validatedFields.success) {
     return {
@@ -158,7 +173,7 @@ export async function registerVolunteer(formData: { fullName: string, email: str
     };
   }
 
-  const { fullName, email, phoneNumber } = validatedFields.data;
+  const { fullName, email, phoneNumber, county } = validatedFields.data;
   const supabase = createSupabaseServerAdminClient();
 
   // This will create the user in Supabase Auth and send them a magic link to set their password
@@ -170,7 +185,7 @@ export async function registerVolunteer(formData: { fullName: string, email: str
   }
 
   // This RPC creates their profile in the public.profiles table
-  const { data, error } = await supabase.rpc('register_volunteer', {
+  const { error } = await supabase.rpc('register_volunteer', {
     p_full_name: fullName,
     p_email: email, // Pass email to store in profile
     p_phone_number: phoneNumber,
@@ -180,6 +195,19 @@ export async function registerVolunteer(formData: { fullName: string, email: str
     console.error('Error registering volunteer profile:', error);
     // TODO: We should probably delete the invited user if the profile creation fails.
     return { error: 'Failed to register volunteer profile. ' + error.message };
+  }
+
+  // Update the new profile with the county
+  if (user) {
+    const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ county: county })
+        .eq('id', user.id);
+    
+    if (updateError) {
+        console.error('Error updating volunteer county:', updateError);
+        // Don't fail the whole process, just log it.
+    }
   }
 
   revalidatePath('/admin');

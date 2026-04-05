@@ -3,14 +3,16 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerAdminClient } from '@/lib/supabase/server-admin-client';
+import { kenyanCounties } from '@/lib/data';
 
 const RegistrationSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
   nationalId: z.string().min(5, { message: 'National ID must be at least 5 characters.'}),
   phoneNumber: z.string().optional(),
+  county: z.string().refine(val => kenyanCounties.includes(val), { message: "Invalid county selected." }),
 });
 
-export async function registerVictim(formData: { fullName: string, nationalId: string, phoneNumber?: string }) {
+export async function registerVictim(formData: { fullName: string, nationalId: string, phoneNumber?: string, county: string }) {
   const validatedFields = RegistrationSchema.safeParse(formData);
 
   if (!validatedFields.success) {
@@ -19,11 +21,11 @@ export async function registerVictim(formData: { fullName: string, nationalId: s
     };
   }
 
-  const { fullName, nationalId, phoneNumber } = validatedFields.data;
+  const { fullName, nationalId, phoneNumber, county } = validatedFields.data;
   const supabase = createSupabaseServerAdminClient();
 
   // Use the RPC function to ensure atomic creation of profile and wallet
-  const { data, error } = await supabase.rpc('register_victim', {
+  const { data: victimId, error } = await supabase.rpc('register_victim', {
     p_full_name: fullName,
     p_national_id: nationalId,
     p_phone_number: phoneNumber
@@ -34,7 +36,20 @@ export async function registerVictim(formData: { fullName: string, nationalId: s
     return { error: 'Failed to register victim. ' + error.message };
   }
 
+  if (victimId) {
+    const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ county: county })
+        .eq('id', victimId);
+    
+    if (updateError) {
+        console.error('Error updating victim county:', updateError);
+        // Don't fail the whole process, just log it.
+    }
+  }
+
+
   revalidatePath('/volunteer');
   revalidatePath('/admin'); // To update victim list on admin page
-  return { success: `Successfully registered ${fullName} with ID: ${data}` };
+  return { success: `Successfully registered ${fullName} with ID: ${victimId}` };
 }
