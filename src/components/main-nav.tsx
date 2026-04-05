@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { HandHeart, LayoutDashboard, MessageCircle, QrCode, Wallet, UserCog, UserPlus, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { logout } from '@/app/actions/auth';
 import type { Profile } from '@/lib/definitions';
 
 const allNavItems = [
@@ -62,12 +61,10 @@ export function MainNav({ role }: { role: Profile['role'] }) {
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <form action={logout}>
-                        <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8">
-                            <LogOut className="h-5 w-5" />
-                            <span className="sr-only">Logout</span>
-                        </button>
-                    </form>
+                    <Link href="/logout" className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8">
+                        <LogOut className="h-5 w-5" />
+                        <span className="sr-only">Logout</span>
+                    </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right">Logout</TooltipContent>
             </Tooltip>

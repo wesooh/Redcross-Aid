@@ -13,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { logout } from '@/app/actions/auth';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '@/lib/definitions';
 
@@ -89,11 +88,9 @@ export function AppHeader({ user, profile }: { user: User, profile: Profile }) {
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
            <DropdownMenuItem asChild>
-              <form action={logout} className="w-full">
-                <button type="submit" className="w-full text-left cursor-pointer">
-                  Logout
-                </button>
-              </form>
+              <Link href="/logout" className="w-full cursor-pointer">
+                Logout
+              </Link>
             </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
