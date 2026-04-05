@@ -31,6 +31,7 @@ export async function login(prevState: any, formData: FormData) {
 
   revalidatePath('/', 'layout')
 
+  // IMPORTANT: This switch statement directs users to the correct dashboard.
   switch(profile?.role) {
     case 'admin':
       redirect('/admin');
@@ -45,7 +46,8 @@ export async function login(prevState: any, formData: FormData) {
       redirect('/dashboard');
       break;
     default:
-      redirect('/dashboard'); // Fallback for users without a role or other roles
+      // This is a fallback. If a user has no role, they go to the general dashboard.
+      redirect('/dashboard');
       break;
   }
 }
