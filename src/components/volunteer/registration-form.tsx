@@ -51,8 +51,8 @@ export function RegistrationForm() {
     <Card key={formKey} className="max-w-md mx-auto">
       <form onSubmit={handleSubmit}>
         <CardHeader>
-          <CardTitle>Register New Victim</CardTitle>
-          <CardDescription>Onboard a new aid recipient. This will create their profile and a linked digital wallet.</CardDescription>
+          <CardTitle>Register New Aid Recipient</CardTitle>
+          <CardDescription>Onboard a new victim. This will create their profile and a linked digital wallet.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -61,13 +61,13 @@ export function RegistrationForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="nationalId">National ID</Label>
-            <Input id="nationalId" name="nationalId" placeholder="Victim's official ID number" required />
+            <Input id="nationalId" name="nationalId" placeholder="Recipient's official ID number" required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="county">County</Label>
             <Select name="county" required onValueChange={setSelectedCounty} value={selectedCounty}>
               <SelectTrigger>
-                <SelectValue placeholder="Select victim's county" />
+                <SelectValue placeholder="Select recipient's county" />
               </SelectTrigger>
               <SelectContent>
                 {kenyanCounties.map((county) => (
@@ -79,14 +79,14 @@ export function RegistrationForm() {
             </Select>
           </div>
            <div className="space-y-2">
-            <Label htmlFor="phoneNumber">Phone Number</Label>
+            <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
             <Input id="phoneNumber" name="phoneNumber" type="tel" placeholder="+254 712 345678" />
           </div>
         </CardContent>
         <CardFooter>
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Register Victim
+            Register Recipient
           </Button>
         </CardFooter>
       </form>

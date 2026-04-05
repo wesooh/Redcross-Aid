@@ -3,22 +3,27 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { HandHeart, LayoutDashboard, MessageCircle, QrCode, Wallet, UserCog, UserPlus, LogOut } from 'lucide-react';
-
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { logout } from '@/app/actions/auth';
+import type { Profile } from '@/lib/definitions';
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/wallet', label: 'My Wallet', icon: Wallet },
-  { href: '/merchant', label: 'Merchant Terminal', icon: QrCode },
-  { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle },
-  { href: '/volunteer', label: 'Volunteer', icon: UserPlus },
-  { href: '/admin', label: 'Admin', icon: UserCog },
+const allNavItems = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'volunteer', 'merchant', 'victim'] },
+  { href: '/wallet', label: 'My Wallet', icon: Wallet, roles: ['admin', 'victim'] },
+  { href: '/merchant', label: 'Merchant Terminal', icon: QrCode, roles: ['admin', 'merchant'] },
+  { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle, roles: ['admin', 'volunteer', 'merchant', 'victim'] },
+  { href: '/volunteer', label: 'Register Victim', icon: UserPlus, roles: ['admin', 'volunteer'] },
+  { href: '/admin', label: 'Admin', icon: UserCog, roles: ['admin'] },
 ];
 
-export function MainNav() {
+function getNavItemsForRole(role: Profile['role']) {
+    return allNavItems.filter(item => item.roles.includes(role));
+}
+
+export function MainNav({ role }: { role: Profile['role'] }) {
   const pathname = usePathname();
+  const navItems = getNavItemsForRole(role);
 
   return (
     <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
@@ -38,7 +43,9 @@ export function MainNav() {
                   href={item.href}
                   className={cn(
                     'flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8',
+                    // Use startsWith for matching parent routes, except for the generic dashboard
                     pathname.startsWith(item.href) && item.href !== '/dashboard' ? 'bg-accent text-accent-foreground' : '',
+                    // Exact match for dashboard
                     pathname === '/dashboard' && item.href === '/dashboard' ? 'bg-accent text-accent-foreground' : ''
                   )}
                 >

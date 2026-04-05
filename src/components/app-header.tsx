@@ -15,19 +15,29 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { logout } from '@/app/actions/auth';
 import type { User } from '@supabase/supabase-js';
+import type { Profile } from '@/lib/definitions';
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/wallet', label: 'My Wallet', icon: Wallet },
-  { href: '/merchant', label: 'Merchant Terminal', icon: QrCode },
-  { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle },
-  { href: '/volunteer', label: 'Volunteer', icon: UserPlus },
-  { href: '/admin', label: 'Admin', icon: UserCog },
+const allNavItems = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'volunteer', 'merchant', 'victim'] },
+  { href: '/wallet', label: 'My Wallet', icon: Wallet, roles: ['admin', 'victim'] },
+  { href: '/merchant', label: 'Merchant Terminal', icon: QrCode, roles: ['admin', 'merchant'] },
+  { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle, roles: ['admin', 'volunteer', 'merchant', 'victim'] },
+  { href: '/volunteer', label: 'Register Victim', icon: UserPlus, roles: ['admin', 'volunteer'] },
+  { href: '/admin', label: 'Admin', icon: UserCog, roles: ['admin'] },
 ];
 
-export function AppHeader({ user }: { user: User }) {
+function getNavItemsForRole(role: Profile['role']) {
+    return allNavItems.filter(item => item.roles.includes(role));
+}
+
+export function AppHeader({ user, profile }: { user: User, profile: Profile }) {
   const pathname = usePathname();
-  const pageTitle = navItems.find((item) => item.href === pathname)?.label || 'Dashboard';
+  const navItems = getNavItemsForRole(profile.role);
+  
+  // Use allNavItems to find the title, ensuring it displays correctly even if the link is hidden for the current role
+  // (e.g. an admin viewing a victim's wallet page). The `startsWith` check handles nested routes.
+  const pageTitle = allNavItems.find((item) => pathname.startsWith(item.href))?.label || 'Dashboard';
+  const displayName = profile.full_name || user.email;
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
@@ -68,18 +78,23 @@ export function AppHeader({ user }: { user: User }) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="icon" className="overflow-hidden rounded-full">
+            {/* TODO: Add Avatar with fallback */}
             <UserCircle className="h-6 w-6" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
+          <DropdownMenuLabel>{displayName}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Settings</DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => logout()} className="cursor-pointer">
-            Logout
-          </DropdownMenuItem>
+           <DropdownMenuItem asChild>
+              <form action={logout} className="w-full">
+                <button type="submit" className="w-full text-left cursor-pointer">
+                  Logout
+                </button>
+              </form>
+            </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

@@ -3,6 +3,7 @@ import { MainNav } from '@/components/main-nav';
 import { Toaster } from '@/components/ui/toaster';
 import { createSupabaseServerClient } from '@/lib/supabase/server-client';
 import { redirect } from 'next/navigation';
+import type { Profile } from '@/lib/definitions';
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const supabase = createSupabaseServerClient();
@@ -12,11 +13,28 @@ export default async function ProtectedLayout({ children }: { children: React.Re
     redirect('/login');
   }
 
+  // Fetch the user's full profile to determine their role
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  // If there's an error or the profile doesn't exist, the user is in an invalid state.
+  // This can happen if an auth user exists without a corresponding profile entry.
+  // Redirecting to login and logging the error is the safest course of action.
+  if (error || !profile) {
+    console.error(`Could not fetch a valid profile for user ${user.id}. Logging out.`, error);
+    redirect('/logout');
+  }
+
+  const userProfile = profile as Profile;
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
-      <MainNav />
+      <MainNav role={userProfile.role} />
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-        <AppHeader user={user} />
+        <AppHeader user={user} profile={userProfile} />
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
             {children}
         </main>
