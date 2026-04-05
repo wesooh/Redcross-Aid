@@ -5,9 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { login } from '@/app/actions/auth';
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { HandHeart } from 'lucide-react';
+import { HandHeart, Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 
 function LoginButton() {
@@ -21,6 +21,7 @@ function LoginButton() {
 
 export default function LoginPage() {
     const [state, formAction] = useActionState(login, undefined);
+    const [showPassword, setShowPassword] = useState(false);
 
     return (
         <div className="relative flex min-h-screen items-center justify-center p-4">
@@ -56,9 +57,24 @@ export default function LoginPage() {
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center">
-                            <Label htmlFor="password">Password</Label>
+                                <Label htmlFor="password">Password</Label>
                             </div>
-                            <Input id="password" name="password" type="password" required />
+                            <div className="relative">
+                                <Input 
+                                    id="password" 
+                                    name="password" 
+                                    type={showPassword ? "text" : "password"} 
+                                    required 
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                </button>
+                            </div>
                         </div>
                         {state?.error && (
                             <p className="text-sm text-destructive bg-destructive/10 p-2 rounded-md">
