@@ -26,6 +26,7 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
+  // This call is essential to refresh the session cookie
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
@@ -38,55 +39,61 @@ export async function updateSession(request: NextRequest) {
       '/pfa-chatbot'
   ];
   
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+
+  // Rule 1: If user is not logged in, they can only access public routes.
   if (!user) {
-    // If user is not logged in and is trying to access a protected route, redirect to login
-    if (protectedRoutes.some(route => pathname.startsWith(route))) {
+    if (isProtectedRoute) {
+        // If they try to access a protected route, redirect to login.
         return NextResponse.redirect(new URL('/login', request.url))
     }
+    // Otherwise, allow access to the public route.
     return response;
   }
 
   // --- From here, we know the user is logged in ---
-  
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-  
-  const role = profile?.role;
-  
-  // 1. Redirect from root or login page to role-specific dashboard
-  if (pathname === '/' || pathname === '/login') {
+
+  // Rule 2: If a logged-in user tries to access the login page or root, redirect them to their dashboard.
+  if (pathname === '/login' || pathname === '/') {
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    const role = profile?.role;
     switch(role) {
-      case 'admin':
-        return NextResponse.redirect(new URL('/admin', request.url));
-      case 'volunteer':
-        return NextResponse.redirect(new URL('/volunteer', request.url));
-      case 'merchant':
-        return NextResponse.redirect(new URL('/merchant', request.url));
-      case 'victim':
-        return NextResponse.redirect(new URL('/dashboard', request.url));
-      default: // Fallback for users without a role yet
-        return NextResponse.redirect(new URL('/dashboard', request.url));
+        case 'admin': return NextResponse.redirect(new URL('/admin', request.url));
+        case 'volunteer': return NextResponse.redirect(new URL('/volunteer', request.url));
+        case 'merchant': return NextResponse.redirect(new URL('/merchant', request.url));
+        case 'victim': return NextResponse.redirect(new URL('/dashboard', request.url));
+        default: return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+  }
+  
+  // Rule 3: Enforce role-based access for protected routes.
+  if (isProtectedRoute) {
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    const role = profile?.role;
+
+    // If a user has no profile/role yet, they can only access general pages.
+    if (!role) {
+        if (pathname !== '/dashboard' && pathname !== '/pfa-chatbot') {
+            return NextResponse.redirect(new URL('/dashboard', request.url));
+        }
+    } else {
+        // Check authorization for specific roles. Admins can access most pages.
+        if (pathname.startsWith('/admin') && role !== 'admin') {
+            return NextResponse.redirect(new URL('/dashboard', request.url));
+        }
+        if (pathname.startsWith('/volunteer') && !['admin', 'volunteer'].includes(role)) {
+            return NextResponse.redirect(new URL('/dashboard', request.url));
+        }
+        if (pathname.startsWith('/merchant') && !['admin', 'merchant'].includes(role)) {
+            return NextResponse.redirect(new URL('/dashboard', request.url));
+        }
+        if (pathname.startsWith('/wallet') && !['admin', 'victim'].includes(role)) {
+            return NextResponse.redirect(new URL('/dashboard', request.url));
+        }
     }
   }
 
-  // 2. Enforce access control on protected routes
-  if (pathname.startsWith('/admin') && role !== 'admin') {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-  if (pathname.startsWith('/volunteer') && role !== 'volunteer' && role !== 'admin') {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-  if (pathname.startsWith('/merchant') && role !== 'merchant' && role !== 'admin') {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-  // Wallet is primarily for victims, but admins might need access for inspection.
-  if (pathname.startsWith('/wallet') && role !== 'victim' && role !== 'admin') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
+  // If all checks pass, allow the request to proceed.
   return response
 }
 
