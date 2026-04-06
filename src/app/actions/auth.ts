@@ -75,23 +75,15 @@ export async function signup(prevState: any, formData: FormData) {
   }
 
   // Create the user in Supabase Auth.
-  // A database trigger is expected to automatically create the corresponding
-  // user profile in the `public.profiles` table.
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: redirectUrl,
-      // This 'data' object is passed to the database trigger.
-      data: {
-        full_name: fullName,
-      },
     },
   });
 
   if (authError) {
-    // Supabase will prevent creating a user with a duplicate email.
-    // The error message is user-friendly enough to show directly.
     return {
       error: 'Could not create user: ' + authError.message,
     };
@@ -103,8 +95,23 @@ export async function signup(prevState: any, formData: FormData) {
       }
   }
 
-  // The manual profile creation has been removed from here to prevent race condition errors.
-  // Your Supabase project should have a trigger that creates the profile automatically.
+  // Manually create the user profile using the admin client to bypass RLS.
+  // Use upsert to prevent errors if the profile already exists.
+  const supabaseAdmin = createSupabaseServerAdminClient();
+  const { error: profileError } = await supabaseAdmin.from('profiles').upsert({
+      id: authData.user.id,
+      full_name: fullName,
+      email: email,
+      role: 'victim' // Self-registered users default to 'victim'
+  });
+
+  if (profileError) {
+      console.error("Profile creation error:", profileError);
+      return {
+          error: "Your account was created, but setting up your user profile failed. Please contact support.",
+      }
+  }
+
   return {
     message: 'Sign up successful! Please check your email for a verification link to complete your registration.',
   };
