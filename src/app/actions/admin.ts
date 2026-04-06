@@ -116,11 +116,12 @@ export async function createCampaign(formData: { name: string, description?: str
 
 const MerchantRegistrationSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
+  email: z.string().email({ message: 'Please enter a valid email address.'}),
   phoneNumber: z.string().optional(),
   county: z.string().refine(val => kenyanCounties.includes(val), { message: "Invalid county selected." }),
 });
 
-export async function registerMerchant(formData: { fullName: string, phoneNumber?: string, county: string }) {
+export async function registerMerchant(formData: { fullName: string, email: string, phoneNumber?: string, county: string }) {
   const validatedFields = MerchantRegistrationSchema.safeParse(formData);
   if (!validatedFields.success) {
     return {
@@ -128,34 +129,42 @@ export async function registerMerchant(formData: { fullName: string, phoneNumber
     };
   }
 
-  const { fullName, phoneNumber, county } = validatedFields.data;
+  const { fullName, email, phoneNumber, county } = validatedFields.data;
   const supabase = createSupabaseServerAdminClient();
 
-  const { data: merchantId, error } = await supabase.rpc('register_merchant', {
-    p_full_name: fullName,
-    p_phone_number: phoneNumber,
+  // This will create the user in Supabase Auth and send them a magic link to set their password
+  const { data: { user }, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email);
+
+  if (inviteError) {
+    console.error('Error inviting merchant:', inviteError);
+    return { error: 'Failed to invite merchant. ' + inviteError.message };
+  }
+  
+  if (!user) {
+    return { error: 'Failed to create merchant user.' };
+  }
+
+  // Now, create their profile in the public.profiles table
+  const { error: profileError } = await supabase.from('profiles').insert({
+    id: user.id,
+    full_name: fullName,
+    email: email,
+    phone_number: phoneNumber,
+    county: county,
+    role: 'merchant'
   });
 
-  if (error) {
-    console.error('Error registering merchant:', error);
-    return { error: 'Failed to register merchant. ' + error.message };
+  if (profileError) {
+    console.error('Error creating merchant profile:', profileError);
+    // Ideally, we might want to delete the auth user here if the profile creation fails,
+    // but for now, we'll just return the error.
+    return { error: 'Failed to create merchant profile. ' + profileError.message };
   }
 
-  if (merchantId) {
-    const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ county: county })
-        .eq('id', merchantId);
-    
-    if (updateError) {
-        console.error('Error updating merchant county:', updateError);
-        // Don't fail the whole process, just log it.
-    }
-  }
 
   revalidatePath('/admin'); // Revalidate admin to show new merchants if listed
   revalidatePath('/merchant'); // Revalidate merchant page to update dropdown
-  return { success: `Successfully registered merchant ${fullName} with ID: ${merchantId}` };
+  return { success: `Successfully invited and registered merchant ${fullName}.` };
 }
 
 const VolunteerRegistrationSchema = z.object({

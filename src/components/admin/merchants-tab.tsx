@@ -28,10 +28,11 @@ function RegisterMerchantForm() {
     }
     const formData = new FormData(event.currentTarget);
     const fullName = formData.get('fullName') as string;
+    const email = formData.get('email') as string;
     const phoneNumber = formData.get('phoneNumber') as string;
     
     startTransition(async () => {
-      const result = await registerMerchant({ fullName, phoneNumber, county: selectedCounty });
+      const result = await registerMerchant({ fullName, email, phoneNumber, county: selectedCounty });
       if (result.error) {
         toast({
           variant: 'destructive',
@@ -54,12 +55,16 @@ function RegisterMerchantForm() {
       <form onSubmit={handleSubmit}>
         <CardHeader>
           <CardTitle>Register New Merchant</CardTitle>
-          <CardDescription>Onboard a new local shop owner (Duka) to the platform. A digital wallet will be created for them automatically.</CardDescription>
+          <CardDescription>Onboard a new local shop owner. They will be sent an email to verify their account and set a password.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="fullName">Merchant's Full Name</Label>
             <Input id="fullName" name="fullName" placeholder="e.g., Juma's General Store" required />
+          </div>
+           <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <Input id="email" name="email" type="email" placeholder="merchant@example.com" required />
           </div>
            <div className="space-y-2">
             <Label htmlFor="county">County</Label>
@@ -77,14 +82,14 @@ function RegisterMerchantForm() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phoneNumber">Phone Number</Label>
+            <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
             <Input id="phoneNumber" name="phoneNumber" type="tel" placeholder="+254 712 345678" />
           </div>
         </CardContent>
         <CardFooter>
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Register Merchant
+            Invite & Register Merchant
           </Button>
         </CardFooter>
       </form>
