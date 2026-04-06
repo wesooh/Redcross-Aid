@@ -95,11 +95,11 @@ export async function signup(prevState: any, formData: FormData) {
       }
   }
 
-  // Manually create the profile in the public.profiles table to ensure it exists.
-  // This makes the signup process resilient, even if a database trigger is missing or fails.
+  // Manually create or update the profile in the public.profiles table.
+  // Using upsert makes the signup process resilient, even if an old profile record exists.
   const { error: profileError } = await supabaseAdmin
     .from('profiles')
-    .insert({
+    .upsert({
         id: authData.user.id,
         full_name: fullName,
         email: email,
