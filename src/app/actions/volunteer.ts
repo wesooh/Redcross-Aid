@@ -28,30 +28,18 @@ export async function registerVictim(formData: { fullName: string, nationalId: s
     ? `+254${phoneNumber.trim().replace(/^0|^\+254/, '')}`
     : undefined;
 
-  // Use the RPC function to ensure atomic creation of profile and wallet
+  // Use the RPC function to ensure atomic creation of profile and wallet, now including the county.
   const { data: victimId, error } = await supabase.rpc('register_victim', {
     p_full_name: fullName,
     p_national_id: nationalId,
-    p_phone_number: formattedPhoneNumber
+    p_phone_number: formattedPhoneNumber,
+    p_county: county
   });
   
   if (error) {
     console.error('Error registering victim:', error);
     return { error: 'Failed to register victim. ' + error.message };
   }
-
-  if (victimId) {
-    const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ county: county })
-        .eq('id', victimId);
-    
-    if (updateError) {
-        console.error('Error updating victim county:', updateError);
-        // Don't fail the whole process, just log it.
-    }
-  }
-
 
   revalidatePath('/volunteer');
   revalidatePath('/admin'); // To update victim list on admin page
