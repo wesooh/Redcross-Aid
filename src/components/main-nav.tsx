@@ -2,18 +2,31 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HandHeart, LayoutDashboard, MessageCircle, QrCode, Wallet, UserCog, UserPlus, LogOut } from 'lucide-react';
+import { 
+    HandHeart, LayoutDashboard, MessageCircle, QrCode, Wallet, 
+    UserCog, UserPlus, LogOut, Banknote, HeartHandshake, ShieldAlert, Store 
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Profile } from '@/lib/definitions';
 
 const allNavItems = [
+  // Non-admin routes
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['volunteer', 'merchant', 'victim'] },
   { href: '/wallet', label: 'My Wallet', icon: Wallet, roles: ['victim'] },
-  { href: '/merchant', label: 'Merchant Terminal', icon: QrCode, roles: ['admin', 'merchant'] },
-  { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle, roles: ['admin', 'volunteer', 'merchant', 'victim'] },
+  { href: '/merchant', label: 'Merchant Terminal', icon: QrCode, roles: ['merchant'] },
   { href: '/volunteer', label: 'Register Victim', icon: UserPlus, roles: ['volunteer'] },
-  { href: '/admin', label: 'Admin Dashboard', icon: UserCog, roles: ['admin'] },
+  
+  // Admin specific routes
+  { href: '/admin', label: 'Overview', icon: UserCog, roles: ['admin'] },
+  { href: '/admin/disbursement', label: 'Disburse Aid', icon: Banknote, roles: ['admin'] },
+  { href: '/admin/campaigns', label: 'Campaigns', icon: HeartHandshake, roles: ['admin'] },
+  { href: '/admin/merchants', label: 'Merchants', icon: Store, roles: ['admin'] },
+  { href: '/admin/volunteers', label: 'Volunteers', icon: UserPlus, roles: ['admin'] },
+  { href: '/admin/triage', label: 'PFA Triage', icon: ShieldAlert, roles: ['admin'] },
+  
+  // PFA Chatbot for all roles, including admin
+  { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle, roles: ['admin', 'volunteer', 'merchant', 'victim'] },
 ];
 
 
@@ -43,12 +56,7 @@ export function MainNav({ role }: { role: Profile['role'] }) {
                   href={item.href}
                   className={cn(
                     'flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8',
-                    // Use startsWith for matching parent routes, except for the generic dashboard
-                    pathname.startsWith(item.href) && item.href !== '/dashboard' ? 'bg-accent text-accent-foreground' : '',
-                    // Exact match for dashboard
-                    pathname === '/dashboard' && item.href === '/dashboard' ? 'bg-accent text-accent-foreground' : '',
-                    // Exact match for admin dashboard
-                    pathname.startsWith('/admin') && item.href === '/admin' ? 'bg-accent text-accent-foreground' : ''
+                    pathname === item.href ? 'bg-accent text-accent-foreground' : ''
                   )}
                 >
                   <item.icon className="h-5 w-5" />

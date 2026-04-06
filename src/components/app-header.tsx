@@ -2,7 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HandHeart, LayoutDashboard, Menu, MessageCircle, QrCode, UserCircle, Wallet, UserPlus, UserCog } from 'lucide-react';
+import { 
+    HandHeart, LayoutDashboard, Menu, MessageCircle, QrCode, UserCircle, Wallet, 
+    UserPlus, UserCog, Banknote, HeartHandshake, ShieldAlert, Store 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -17,12 +20,22 @@ import type { User } from '@supabase/supabase-js';
 import type { Profile } from '@/lib/definitions';
 
 const allNavItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['volunteer', 'merchant', 'victim'] },
-  { href: '/wallet', label: 'My Wallet', icon: Wallet, roles: ['victim'] },
-  { href: '/merchant', label: 'Merchant Terminal', icon: QrCode, roles: ['admin', 'merchant'] },
-  { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle, roles: ['admin', 'volunteer', 'merchant', 'victim'] },
-  { href: '/volunteer', label: 'Register Victim', icon: UserPlus, roles: ['volunteer'] },
-  { href: '/admin', label: 'Admin Dashboard', icon: UserCog, roles: ['admin'] },
+    // Non-admin routes
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['volunteer', 'merchant', 'victim'] },
+    { href: '/wallet', label: 'My Wallet', icon: Wallet, roles: ['victim'] },
+    { href: '/merchant', label: 'Merchant Terminal', icon: QrCode, roles: ['merchant'] },
+    { href: '/volunteer', label: 'Register Victim', icon: UserPlus, roles: ['volunteer'] },
+    
+    // Admin specific routes
+    { href: '/admin', label: 'Overview', icon: UserCog, roles: ['admin'] },
+    { href: '/admin/disbursement', label: 'Disburse Aid', icon: Banknote, roles: ['admin'] },
+    { href: '/admin/campaigns', label: 'Campaigns', icon: HeartHandshake, roles: ['admin'] },
+    { href: '/admin/merchants', label: 'Merchants', icon: Store, roles: ['admin'] },
+    { href: '/admin/volunteers', label: 'Volunteers', icon: UserPlus, roles: ['admin'] },
+    { href: '/admin/triage', label: 'PFA Triage', icon: ShieldAlert, roles: ['admin'] },
+    
+    // PFA Chatbot for all roles, including admin
+    { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle, roles: ['admin', 'volunteer', 'merchant', 'victim'] },
 ];
 
 function getNavItemsForRole(role: Profile['role']) {
@@ -33,9 +46,7 @@ export function AppHeader({ user, profile }: { user: User, profile: Profile }) {
   const pathname = usePathname();
   const navItems = getNavItemsForRole(profile.role);
   
-  // Use allNavItems to find the title, ensuring it displays correctly even if the link is hidden for the current role
-  // (e.g. an admin viewing a victim's wallet page). The `startsWith` check handles nested routes.
-  const pageTitle = allNavItems.find((item) => pathname.startsWith(item.href))?.label || 'Dashboard';
+  const pageTitle = allNavItems.find((item) => pathname === item.href)?.label || 'Dashboard';
   const displayName = profile.full_name || user.email;
 
   return (

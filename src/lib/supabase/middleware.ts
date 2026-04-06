@@ -30,8 +30,8 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
-  // GUEST ADMIN ACCESS: Allow unauthenticated requests to the /admin route
-  if (!user && pathname.startsWith('/admin')) {
+  // GUEST ADMIN ACCESS: Allow unauthenticated requests to all admin routes and the PFA chatbot
+  if (!user && (pathname.startsWith('/admin') || pathname.startsWith('/pfa-chatbot'))) {
     return response;
   }
 
