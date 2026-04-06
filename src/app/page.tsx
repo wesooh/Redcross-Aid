@@ -9,9 +9,9 @@ export default function LandingPage() {
       <header className="absolute top-0 left-0 right-0 z-20 container mx-auto flex items-center justify-between py-4 px-4 sm:px-6 text-primary-foreground">
         <div className="flex items-center gap-2">
           <HandHeart className="h-8 w-8 text-white" />
-          <h1 className="text-2xl font-bold text-white">ResilienceLink</h1>
+          <h1 className="text-2xl font-bold text-white">Redcross Trust</h1>
         </div>
-        <Button asChild variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-primary">
+        <Button asChild variant="secondary">
           <Link href="/login">Login</Link>
         </Button>
       </header>
@@ -73,7 +73,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="container mx-auto py-6 px-4 sm:px-6 text-center text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} ResilienceLink. A Red Cross Initiative.</p>
+        <p>&copy; {new Date().getFullYear()} Redcross Trust. A Red Cross Initiative.</p>
       </footer>
     </div>
   );

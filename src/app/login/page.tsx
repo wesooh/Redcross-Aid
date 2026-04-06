@@ -39,7 +39,7 @@ export default function LoginPage() {
                     <div className="flex items-center justify-center gap-2">
                         <HandHeart className="h-10 w-10 text-primary" />
                     </div>
-                    <CardTitle className="text-2xl text-center">ResilienceLink Login</CardTitle>
+                    <CardTitle className="text-2xl text-center">Redcross Trust Login</CardTitle>
                     <CardDescription className="text-center">
                         Enter your credentials to access the platform.
                     </CardDescription>
@@ -86,7 +86,7 @@ export default function LoginPage() {
                     </form>
                     <div className="mt-4 text-center text-sm">
                         <Link href="/" className="underline hover:text-primary">
-                            Back to Landing Page
+                            Back to Main Page
                         </Link>
                     </div>
                 </CardContent>
