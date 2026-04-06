@@ -26,7 +26,7 @@ export default function LandingPage() {
               priority
               sizes="100vw"
             />
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/40" />
           <div className="relative z-10 container flex flex-col items-center px-4 sm:px-6">
             <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
               Smart Trust & PFA Triage

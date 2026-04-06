@@ -34,7 +34,7 @@ export default function LoginPage() {
                 priority
                 sizes="100vw"
             />
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-black/40" />
              <Card className="mx-auto max-w-sm w-full z-10">
                 <CardHeader className="space-y-4">
                     <div className="flex items-center justify-center gap-2">
