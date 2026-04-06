@@ -30,6 +30,11 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
+  // GUEST ADMIN ACCESS: Allow unauthenticated requests to the /admin route
+  if (!user && pathname.startsWith('/admin')) {
+    return response;
+  }
+
   const protectedRoutes = [
       '/dashboard',
       '/admin',
@@ -41,7 +46,7 @@ export async function updateSession(request: NextRequest) {
   
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
-  // Rule 1: If user is not logged in, they can only access public routes.
+  // Rule 1: If user is not logged in, they can only access public routes (and guest admin).
   if (!user) {
     if (isProtectedRoute) {
         // If they try to access a protected route, redirect to login.

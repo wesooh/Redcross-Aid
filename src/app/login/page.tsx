@@ -41,7 +41,7 @@ export default function LoginPage() {
                     </div>
                     <CardTitle className="text-2xl text-center">Redcross Trust Login</CardTitle>
                     <CardDescription className="text-center">
-                        Enter your credentials to access the platform.
+                        Enter your credentials or continue as a guest.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -90,11 +90,17 @@ export default function LoginPage() {
                         )}
                         <LoginButton />
                     </form>
-                    <div className="mt-4 text-center text-sm">
-                        <Link href="/" className="underline hover:text-primary">
-                            Back to Main Page
-                        </Link>
+
+                    <div className="relative flex items-center py-4">
+                        <div className="flex-grow border-t border-muted"></div>
+                        <span className="flex-shrink mx-4 text-xs text-muted-foreground">OR</span>
+                        <div className="flex-grow border-t border-muted"></div>
                     </div>
+
+                    <Button variant="secondary" className="w-full" asChild>
+                        <Link href="/admin">Continue as Guest Admin</Link>
+                    </Button>
+
                 </CardContent>
             </Card>
         </div>
