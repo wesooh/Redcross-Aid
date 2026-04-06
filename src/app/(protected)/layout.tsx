@@ -28,7 +28,14 @@ export default async function ProtectedLayout({ children }: { children: React.Re
     // When using .single(), Supabase returns an error if no rows are found. This is expected.
     // We create a clean log message for debugging and then log the user out.
     const reason = error ? `(Reason: ${error.message})` : '(Reason: No profile found for this user ID).';
-    console.error(`Could not fetch a valid profile for user ${user.id}. ${reason} Logging out.`);
+    
+    // Add a more specific hint for the most common cause of this error.
+    if (error?.message.includes('permission denied')) {
+        console.error(`DATABASE PERMISSION ERROR: Could not fetch a profile for user ${user.id}. This is likely due to a missing Row Level Security (RLS) policy on the 'profiles' table. Please ensure authenticated users have read access to their own profile.`);
+    } else {
+        console.error(`Could not fetch a valid profile for user ${user.id}. ${reason} Logging out.`);
+    }
+    
     redirect('/logout');
   }
 
