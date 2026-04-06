@@ -148,8 +148,8 @@ export async function registerMerchant(formData: { fullName: string, email: stri
     return { error: 'Failed to create merchant user.' };
   }
 
-  // Now, create their profile in the public.profiles table
-  const { error: profileError } = await supabase.from('profiles').insert({
+  // Now, create their profile in the public.profiles table using upsert
+  const { error: profileError } = await supabase.from('profiles').upsert({
     id: user.id,
     full_name: fullName,
     email: email,
@@ -205,8 +205,8 @@ export async function registerVolunteer(formData: { fullName: string, email: str
     return { error: 'Failed to create volunteer user.' };
   }
 
-  // Now, create their profile in the public.profiles table
-  const { error: profileError } = await supabase.from('profiles').insert({
+  // Now, create their profile in the public.profiles table using upsert
+  const { error: profileError } = await supabase.from('profiles').upsert({
     id: user.id,
     full_name: fullName,
     email: email,
