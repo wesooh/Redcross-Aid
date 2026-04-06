@@ -59,6 +59,7 @@ export async function login(prevState: any, formData: FormData) {
 
 export async function signup(prevState: any, formData: FormData) {
   const supabase = createSupabaseServerClient();
+  const supabaseAdmin = createSupabaseServerAdminClient();
 
   const fullName = formData.get('fullName') as string;
   const email = formData.get('email') as string;
@@ -72,22 +73,47 @@ export async function signup(prevState: any, formData: FormData) {
       return { error: 'Password must be at least 6 characters long.' };
   }
 
-  // The on_auth_user_created trigger in the database will create a public.profiles entry.
-  const { error } = await supabase.auth.signUp({
+  // First, create the user in Supabase Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
-        full_name: fullName,
+        full_name: fullName, // This data can be used by a DB trigger, but we won't rely on it.
       },
     },
   });
 
-  if (error) {
+  if (authError) {
     return {
-      error: 'Could not create user: ' + error.message,
+      error: 'Could not create user: ' + authError.message,
     };
   }
+  if (!authData.user) {
+      return {
+          error: "Account created but couldn't retrieve user details. Please contact support."
+      }
+  }
+
+  // Manually create the profile in the public.profiles table to ensure it exists.
+  // This makes the signup process resilient, even if a database trigger is missing or fails.
+  const { error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .insert({
+        id: authData.user.id,
+        full_name: fullName,
+        email: email,
+        role: 'victim' // Assign a default, non-privileged role. This can be changed in the Supabase UI.
+    });
+  
+  if (profileError) {
+      console.error("Critical Error: User was created in Auth, but profile creation failed.", profileError);
+      // At this point, you might want to manually delete the auth user or notify an admin.
+      return {
+          error: "Your account was created, but setting up your user profile failed. Please contact support."
+      }
+  }
+
 
   return {
     message: 'Sign up successful! Please check your email for a verification link to complete your registration.',

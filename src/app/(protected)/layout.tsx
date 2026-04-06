@@ -3,6 +3,7 @@ import { AppHeader } from '@/components/app-header';
 import { MainNav } from '@/components/main-nav';
 import { Toaster } from '@/components/ui/toaster';
 import { createSupabaseServerClient } from '@/lib/supabase/server-client';
+import { createSupabaseServerAdminClient } from '@/lib/supabase/server-admin-client';
 import { redirect } from 'next/navigation';
 import type { Profile } from '@/lib/definitions';
 import type { User } from '@supabase/supabase-js';
@@ -46,7 +47,9 @@ export default async function ProtectedLayout({ children }: { children: React.Re
 
   if (sessionUser && !sessionProfile) {
     // For real, logged-in users, fetch their profile.
-    const { data: realProfile, error } = await supabase
+    // Use the ADMIN client to bypass RLS in case of faulty policies, preventing login loops.
+    const supabaseAdmin = createSupabaseServerAdminClient();
+    const { data: realProfile, error } = await supabaseAdmin
       .from('profiles')
       .select('*')
       .eq('id', sessionUser.id)
