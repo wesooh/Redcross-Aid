@@ -24,6 +24,7 @@ export default function LandingPage() {
               fill
               className="object-cover"
               priority
+              sizes="100vw"
             />
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="relative z-10 container flex flex-col items-center px-4 sm:px-6">

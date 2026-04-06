@@ -59,7 +59,7 @@ export async function login(prevState: any, formData: FormData) {
 
 export async function signup(prevState: any, formData: FormData) {
   const supabase = createSupabaseServerClient();
-  const origin = headers().get('origin');
+  const origin = headers().get('origin') || 'https://redcross-aid.vercel.app';
   const redirectUrl = `${origin}/auth/callback`;
 
   const fullName = formData.get('fullName') as string;
@@ -80,6 +80,9 @@ export async function signup(prevState: any, formData: FormData) {
     password,
     options: {
       emailRedirectTo: redirectUrl,
+      data: {
+          full_name: fullName
+      }
     },
   });
 
@@ -95,22 +98,7 @@ export async function signup(prevState: any, formData: FormData) {
       }
   }
 
-  // Manually create the user profile using the admin client to bypass RLS.
-  // Use upsert to prevent errors if the profile already exists.
-  const supabaseAdmin = createSupabaseServerAdminClient();
-  const { error: profileError } = await supabaseAdmin.from('profiles').upsert({
-      id: authData.user.id,
-      full_name: fullName,
-      email: email,
-      role: 'victim' // Self-registered users default to 'victim'
-  });
-
-  if (profileError) {
-      console.error("Profile creation error:", profileError);
-      return {
-          error: "Your account was created, but setting up your user profile failed. Please contact support.",
-      }
-  }
+  // The database trigger will create the profile. We no longer need to do it here.
 
   return {
     message: 'Sign up successful! Please check your email for a verification link to complete your registration.',
@@ -126,9 +114,7 @@ export async function requestPasswordReset(prevState: any, formData: FormData) {
     return { error: 'Please enter your email address.' }
   }
 
-  // Get the redirect URL from the request headers
-  const origin = headers().get('origin');
-  const redirectUrl = `${origin}/auth/reset-password`;
+  const redirectUrl = 'https://redcross-aid.vercel.app/auth/reset-password';
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: redirectUrl,

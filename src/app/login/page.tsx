@@ -32,6 +32,7 @@ export default function LoginPage() {
                 fill
                 className="object-cover"
                 priority
+                sizes="100vw"
             />
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
              <Card className="mx-auto max-w-sm w-full z-10">

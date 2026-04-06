@@ -132,16 +132,15 @@ export async function registerMerchant(formData: { fullName: string, email: stri
 
   const { fullName, email, phoneNumber, county } = validatedFields.data;
   const supabase = createSupabaseServerAdminClient();
-
-  const formattedPhoneNumber = phoneNumber && phoneNumber.trim() !== '' 
-    ? `+254${phoneNumber.trim().replace(/^0|^\+254/, '')}` 
-    : undefined;
+  
+  const redirectTo = 'https://redcross-aid.vercel.app/auth/reset-password';
 
   // This will create the user in Supabase Auth and send them a magic link to set their password
   const { data: { user }, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
       data: {
           full_name: fullName,
-      }
+      },
+      redirectTo,
   });
 
   if (inviteError) {
@@ -152,6 +151,10 @@ export async function registerMerchant(formData: { fullName: string, email: stri
   if (!user) {
     return { error: 'Failed to create merchant user.' };
   }
+  
+  const formattedPhoneNumber = phoneNumber && phoneNumber.trim() !== '' 
+    ? `+254${phoneNumber.trim().replace(/^0|^\+254/, '')}` 
+    : undefined;
 
   // Now, create their profile in the public.profiles table using upsert
   const { error: profileError } = await supabase.from('profiles').upsert({
@@ -194,15 +197,14 @@ export async function registerVolunteer(formData: { fullName: string, email: str
   const { fullName, email, phoneNumber, county } = validatedFields.data;
   const supabase = createSupabaseServerAdminClient();
 
-  const formattedPhoneNumber = phoneNumber && phoneNumber.trim() !== ''
-    ? `+254${phoneNumber.trim().replace(/^0|^\+254/, '')}`
-    : undefined;
+  const redirectTo = 'https://redcross-aid.vercel.app/auth/reset-password';
 
   // This will create the user in Supabase Auth and send them a magic link to set their password
   const { data: { user }, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
       data: {
           full_name: fullName,
-      }
+      },
+      redirectTo,
   });
 
   if (inviteError) {
@@ -213,6 +215,10 @@ export async function registerVolunteer(formData: { fullName: string, email: str
   if (!user) {
     return { error: 'Failed to create volunteer user.' };
   }
+  
+  const formattedPhoneNumber = phoneNumber && phoneNumber.trim() !== ''
+    ? `+254${phoneNumber.trim().replace(/^0|^\+254/, '')}`
+    : undefined;
 
   // Now, create their profile in the public.profiles table using upsert
   const { error: profileError } = await supabase.from('profiles').upsert({
