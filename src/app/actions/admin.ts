@@ -201,32 +201,28 @@ export async function registerVolunteer(formData: { fullName: string, email: str
     return { error: 'Failed to invite volunteer. ' + inviteError.message };
   }
 
-  // This RPC creates their profile in the public.profiles table
-  const { error } = await supabase.rpc('register_volunteer', {
-    p_full_name: fullName,
-    p_email: email, // Pass email to store in profile
-    p_phone_number: formattedPhoneNumber,
+  if (!user) {
+    return { error: 'Failed to create volunteer user.' };
+  }
+
+  // Now, create their profile in the public.profiles table
+  const { error: profileError } = await supabase.from('profiles').insert({
+    id: user.id,
+    full_name: fullName,
+    email: email,
+    phone_number: formattedPhoneNumber,
+    county: county,
+    role: 'volunteer'
   });
 
-  if (error) {
-    console.error('Error registering volunteer profile:', error);
-    // TODO: We should probably delete the invited user if the profile creation fails.
-    return { error: 'Failed to register volunteer profile. ' + error.message };
+  if (profileError) {
+    console.error('Error creating volunteer profile:', profileError);
+    // Ideally, we might want to delete the auth user here if the profile creation fails.
+    return { error: 'Failed to create volunteer profile. ' + profileError.message };
   }
 
-  // Update the new profile with the county
-  if (user) {
-    const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ county: county })
-        .eq('id', user.id);
-    
-    if (updateError) {
-        console.error('Error updating volunteer county:', updateError);
-        // Don't fail the whole process, just log it.
-    }
-  }
 
   revalidatePath('/admin');
+  revalidatePath('/admin/volunteers');
   return { success: `Successfully invited and registered volunteer ${fullName}.` };
 }

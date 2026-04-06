@@ -10,8 +10,11 @@ import { useToast } from '@/hooks/use-toast';
 import { registerVolunteer } from '@/app/actions/admin';
 import { kenyanCounties } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import type { Profile } from '@/lib/definitions';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { format } from 'date-fns';
 
-export function VolunteersTab() {
+function RegisterVolunteerForm() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [formKey, setFormKey] = useState(Date.now()); // To reset the form
@@ -49,7 +52,7 @@ export function VolunteersTab() {
   };
 
   return (
-    <Card key={formKey} className="max-w-md">
+    <Card key={formKey}>
       <form onSubmit={handleSubmit}>
         <CardHeader>
           <CardTitle>Register New Volunteer</CardTitle>
@@ -96,4 +99,52 @@ export function VolunteersTab() {
       </form>
     </Card>
   );
+}
+
+function VolunteersList({ volunteers }: { volunteers: Profile[] }) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Existing Volunteers</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>County</TableHead>
+                            <TableHead>Phone Number</TableHead>
+                            <TableHead>Date Registered</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {volunteers.map((volunteer) => (
+                            <TableRow key={volunteer.id}>
+                                <TableCell className="font-medium">{volunteer.full_name}</TableCell>
+                                <TableCell>{volunteer.county || 'N/A'}</TableCell>
+                                <TableCell>{volunteer.phone_number || 'N/A'}</TableCell>
+                                <TableCell>{format(new Date(volunteer.created_at), 'PPP')}</TableCell>
+                            </TableRow>
+                        ))}
+                        {volunteers.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                    No volunteers found.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    )
+}
+
+export function VolunteersTab({ volunteers }: { volunteers: Profile[] }) {
+    return (
+        <div className="grid gap-8 md:grid-cols-2">
+            <RegisterVolunteerForm />
+            <VolunteersList volunteers={volunteers} />
+        </div>
+    )
 }
