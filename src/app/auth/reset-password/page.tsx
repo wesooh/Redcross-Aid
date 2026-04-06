@@ -21,20 +21,20 @@ export default function ResetPasswordPage() {
   const [isRecoverySession, setIsRecoverySession] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
 
+  // New state for the pasted URL
+  const [recoveryUrl, setRecoveryUrl] = useState('');
+
   useEffect(() => {
-    // Supabase password recovery uses a URL fragment.
-    // The onAuthStateChange listener detects the PASSWORD_RECOVERY event
-    // when the component mounts and there's a recovery hash in the URL.
+    // If the recovery hash is in the URL on load, start checking.
+    // Otherwise, we're waiting for the user to paste a URL, so stop the loader.
+    if (!window.location.hash.includes('type=recovery')) {
+        setIsCheckingSession(false);
+    }
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         setIsRecoverySession(true);
         setIsCheckingSession(false);
-      } else {
-        // If there's no hash or it's invalid, the event won't fire.
-        // We'll give it a moment, then assume it's not a valid recovery link.
-        setTimeout(() => {
-          setIsCheckingSession(false);
-        }, 1000); // Wait 1 second for the event
       }
     });
 
@@ -43,7 +43,7 @@ export default function ResetPasswordPage() {
     };
   }, [supabase.auth]);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handlePasswordSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
@@ -61,8 +61,33 @@ export default function ResetPasswordPage() {
         router.push('/login');
       }, 3000);
     }
-
     setIsSubmitting(false);
+  };
+  
+  const handleUrlSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!recoveryUrl) {
+      setError('Please paste the recovery link.');
+      return;
+    }
+
+    try {
+      const url = new URL(recoveryUrl);
+      if (!url.hash || !url.hash.includes('type=recovery')) {
+        setError('This does not look like a valid Supabase recovery link.');
+        return;
+      }
+      
+      // Start the loading spinner and update the URL hash.
+      // The `onAuthStateChange` listener in useEffect will detect the change.
+      setIsCheckingSession(true);
+      window.location.hash = url.hash;
+
+    } catch (err) {
+      setError('Invalid URL format. Please paste the full link.');
+    }
   };
 
   const renderContent = () => {
@@ -75,41 +100,59 @@ export default function ResetPasswordPage() {
       );
     }
 
-    if (!isRecoverySession) {
-      return (
-        <div className="text-center">
-          <p className="text-destructive">Invalid or expired password reset link.</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Please try requesting a new password reset link from the login page.
-          </p>
-        </div>
-      );
+    if (isRecoverySession) {
+        return (
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <Input
+                id="new-password"
+                name="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter your new password"
+                required
+                minLength={6}
+              />
+            </div>
+            
+            {error && <p className="text-sm text-destructive bg-destructive/10 p-2 rounded-md">{error}</p>}
+            {message && <p className="text-sm text-green-600 bg-green-500/10 p-2 rounded-md">{message}</p>}
+
+            <Button className="w-full" type="submit" disabled={isSubmitting || !!message}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting ? 'Resetting Password...' : 'Set New Password'}
+            </Button>
+          </form>
+        );
     }
 
+    // Default state: not checking and no recovery session. Show the URL paste form.
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="new-password">New Password</Label>
-          <Input
-            id="new-password"
-            name="new-password"
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Enter your new password"
-            required
-            minLength={6}
-          />
-        </div>
-        
-        {error && <p className="text-sm text-destructive bg-destructive/10 p-2 rounded-md">{error}</p>}
-        {message && <p className="text-sm text-green-600 bg-green-500/10 p-2 rounded-md">{message}</p>}
+        <form onSubmit={handleUrlSubmit} className="space-y-4">
+             <div className="space-y-2">
+                <Label htmlFor="recovery-url">Paste Recovery Link</Label>
+                <Input
+                    id="recovery-url"
+                    name="recovery-url"
+                    type="url"
+                    value={recoveryUrl}
+                    onChange={(e) => setRecoveryUrl(e.target.value)}
+                    placeholder="Paste the full link here"
+                    required
+                />
+                <p className="text-xs text-muted-foreground pt-1">
+                    Get this link from the Supabase dashboard (Users &rarr; Send password recovery) and paste it here.
+                </p>
+            </div>
+            
+            {error && <p className="text-sm text-destructive bg-destructive/10 p-2 rounded-md">{error}</p>}
 
-        <Button className="w-full" type="submit" disabled={isSubmitting || !!message}>
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isSubmitting ? 'Resetting Password...' : 'Set New Password'}
-        </Button>
-      </form>
+            <Button className="w-full" type="submit" disabled={isCheckingSession}>
+                Verify Pasted Link
+            </Button>
+        </form>
     );
   }
 
@@ -122,7 +165,7 @@ export default function ResetPasswordPage() {
             </div>
             <CardTitle className="text-2xl text-center">Reset Your Password</CardTitle>
             <CardDescription className="text-center">
-                {isRecoverySession ? "Enter a new password below." : "Verifying your reset link..."}
+                {isRecoverySession ? "Enter a new password below." : "Paste your recovery link to begin."}
             </CardDescription>
         </CardHeader>
         <CardContent>
