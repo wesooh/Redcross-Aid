@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/supabase/server-client'
 import { createSupabaseServerAdminClient } from '@/lib/supabase/server-admin-client'
 
@@ -54,4 +55,33 @@ export async function login(prevState: any, formData: FormData) {
         error: 'Login failed: Could not determine user role. Please contact support.',
       }
   }
+}
+
+export async function requestPasswordReset(prevState: any, formData: FormData) {
+  const supabase = createSupabaseServerClient()
+  const email = formData.get('email') as string;
+
+  if (!email) {
+    return { error: 'Please enter your email address.' }
+  }
+
+  // Get the redirect URL from the request headers
+  const origin = headers().get('origin');
+  const redirectUrl = `${origin}/auth/reset-password`;
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: redirectUrl,
+  });
+
+  if (error) {
+    console.error('Password reset error:', error);
+    // Don't reveal if the user exists or not for security reasons.
+    return {
+      message: 'If an account exists for this email, a password reset link has been sent.',
+    };
+  }
+
+  return {
+    message: 'If an account exists for this email, a password reset link has been sent.',
+  };
 }
