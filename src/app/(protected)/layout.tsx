@@ -24,7 +24,10 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   // This can happen if an auth user exists without a corresponding profile entry.
   // Redirecting to login and logging the error is the safest course of action.
   if (error || !profile) {
-    console.error(`Could not fetch a valid profile for user ${user.id}. Logging out.`, error);
+    // When using .single(), Supabase returns an error if no rows are found. This is expected.
+    // We create a clean log message for debugging and then log the user out.
+    const reason = error ? `(Reason: ${error.message})` : '(Reason: No profile found for this user ID).';
+    console.error(`Could not fetch a valid profile for user ${user.id}. ${reason} Logging out.`);
     redirect('/logout');
   }
 
