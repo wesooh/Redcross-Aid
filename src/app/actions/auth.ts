@@ -57,6 +57,44 @@ export async function login(prevState: any, formData: FormData) {
   }
 }
 
+export async function signup(prevState: any, formData: FormData) {
+  const supabase = createSupabaseServerClient();
+
+  const fullName = formData.get('fullName') as string;
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+
+  // Basic validation
+  if (!fullName || !email || !password) {
+      return { error: 'Please fill out all fields.' };
+  }
+  if (password.length < 6) {
+      return { error: 'Password must be at least 6 characters long.' };
+  }
+
+  // The on_auth_user_created trigger in the database will create a public.profiles entry.
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName,
+      },
+    },
+  });
+
+  if (error) {
+    return {
+      error: 'Could not create user: ' + error.message,
+    };
+  }
+
+  return {
+    message: 'Sign up successful! Please check your email for a verification link to complete your registration.',
+  };
+}
+
+
 export async function requestPasswordReset(prevState: any, formData: FormData) {
   const supabase = createSupabaseServerClient()
   const email = formData.get('email') as string;
@@ -77,11 +115,11 @@ export async function requestPasswordReset(prevState: any, formData: FormData) {
     console.error('Password reset error:', error);
     // Don't reveal if the user exists or not for security reasons.
     return {
-      message: 'If an account exists for this email, a password reset link has been sent.',
+      message: 'If an account exists for this email, a password reset link has been sent. Please also check your spam folder.',
     };
   }
 
   return {
-    message: 'If an account exists for this email, a password reset link has been sent.',
+    message: 'If an account exists for this email, a password reset link has been sent. Please also check your spam folder.',
   };
 }

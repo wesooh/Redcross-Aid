@@ -91,6 +91,13 @@ export default function LoginPage() {
                         <LoginButton />
                     </form>
 
+                    <div className="mt-4 text-center text-sm">
+                        Don&apos;t have an account?{' '}
+                        <Link href="/signup" className="underline hover:text-primary">
+                            Sign up
+                        </Link>
+                    </div>
+
                     <div className="relative flex items-center py-4">
                         <div className="flex-grow border-t border-muted"></div>
                         <span className="flex-shrink mx-4 text-xs text-muted-foreground">OR</span>
