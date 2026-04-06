@@ -132,6 +132,10 @@ export async function registerMerchant(formData: { fullName: string, email: stri
   const { fullName, email, phoneNumber, county } = validatedFields.data;
   const supabase = createSupabaseServerAdminClient();
 
+  const formattedPhoneNumber = phoneNumber && phoneNumber.trim() !== '' 
+    ? `+254${phoneNumber.trim().replace(/^0|^\+254/, '')}` 
+    : undefined;
+
   // This will create the user in Supabase Auth and send them a magic link to set their password
   const { data: { user }, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email);
 
@@ -149,7 +153,7 @@ export async function registerMerchant(formData: { fullName: string, email: stri
     id: user.id,
     full_name: fullName,
     email: email,
-    phone_number: phoneNumber,
+    phone_number: formattedPhoneNumber,
     county: county,
     role: 'merchant'
   });
@@ -185,6 +189,10 @@ export async function registerVolunteer(formData: { fullName: string, email: str
   const { fullName, email, phoneNumber, county } = validatedFields.data;
   const supabase = createSupabaseServerAdminClient();
 
+  const formattedPhoneNumber = phoneNumber && phoneNumber.trim() !== ''
+    ? `+254${phoneNumber.trim().replace(/^0|^\+254/, '')}`
+    : undefined;
+
   // This will create the user in Supabase Auth and send them a magic link to set their password
   const { data: { user }, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email);
 
@@ -197,7 +205,7 @@ export async function registerVolunteer(formData: { fullName: string, email: str
   const { error } = await supabase.rpc('register_volunteer', {
     p_full_name: fullName,
     p_email: email, // Pass email to store in profile
-    p_phone_number: phoneNumber,
+    p_phone_number: formattedPhoneNumber,
   });
 
   if (error) {

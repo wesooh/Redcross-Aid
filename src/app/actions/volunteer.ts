@@ -24,11 +24,15 @@ export async function registerVictim(formData: { fullName: string, nationalId: s
   const { fullName, nationalId, phoneNumber, county } = validatedFields.data;
   const supabase = createSupabaseServerAdminClient();
 
+  const formattedPhoneNumber = phoneNumber && phoneNumber.trim() !== ''
+    ? `+254${phoneNumber.trim().replace(/^0|^\+254/, '')}`
+    : undefined;
+
   // Use the RPC function to ensure atomic creation of profile and wallet
   const { data: victimId, error } = await supabase.rpc('register_victim', {
     p_full_name: fullName,
     p_national_id: nationalId,
-    p_phone_number: phoneNumber
+    p_phone_number: formattedPhoneNumber
   });
   
   if (error) {

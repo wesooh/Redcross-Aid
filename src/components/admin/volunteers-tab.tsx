@@ -80,8 +80,11 @@ export function VolunteersTab() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phoneNumber">Phone Number</Label>
-            <Input id="phoneNumber" name="phoneNumber" type="tel" placeholder="+254 712 345678" />
+            <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
+            <div className="flex items-center gap-2">
+                <span className="inline-flex h-10 items-center rounded-md border border-input bg-background px-3 text-sm text-muted-foreground">+254</span>
+                <Input id="phoneNumber" name="phoneNumber" type="tel" placeholder="712 345 678" />
+            </div>
           </div>
         </CardContent>
         <CardFooter>

@@ -21,7 +21,7 @@ const allNavItems = [
   { href: '/wallet', label: 'My Wallet', icon: Wallet, roles: ['victim'] },
   { href: '/merchant', label: 'Merchant Terminal', icon: QrCode, roles: ['admin', 'merchant'] },
   { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle, roles: ['admin', 'volunteer', 'merchant', 'victim'] },
-  { href: '/volunteer', label: 'Register Victim', icon: UserPlus, roles: ['admin', 'volunteer'] },
+  { href: '/volunteer', label: 'Register Victim', icon: UserPlus, roles: ['volunteer'] },
   { href: '/admin', label: 'Admin Dashboard', icon: UserCog, roles: ['admin'] },
 ];
 
