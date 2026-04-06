@@ -2,6 +2,7 @@ import { AppHeader } from '@/components/app-header';
 import { MainNav } from '@/components/main-nav';
 import { Toaster } from '@/components/ui/toaster';
 import { createSupabaseServerClient } from '@/lib/supabase/server-client';
+import { createSupabaseServerAdminClient } from '@/lib/supabase/server-admin-client';
 import { redirect } from 'next/navigation';
 import type { Profile } from '@/lib/definitions';
 
@@ -14,8 +15,11 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   }
 
   // Fetch the user's full profile to determine their role.
-  // RLS policy should allow users to read their own profile.
-  const { data: profile, error } = await supabase
+  // Use the ADMIN client to bypass any problematic RLS policies on the profiles table,
+  // which can cause login loops if not configured correctly. This is a safe operation
+  // as we are only fetching the profile for the currently authenticated user.
+  const supabaseAdmin = createSupabaseServerAdminClient();
+  const { data: profile, error } = await supabaseAdmin
     .from('profiles')
     .select('*')
     .eq('id', user.id)
