@@ -5,12 +5,14 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   // if "next" is in param, use it as the redirect URL
-  const next = searchParams.get('next') ?? '/'
+  const next = searchParams.get('next') ?? '/dashboard'
 
   if (code) {
     const supabase = createSupabaseServerClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      // Redirecting directly to the dashboard to avoid a multi-redirect chain
+      // that can be blocked by browser security.
       return NextResponse.redirect(`${origin}${next}`)
     }
   }
