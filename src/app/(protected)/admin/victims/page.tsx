@@ -1,8 +1,7 @@
 
-import { RegistrationForm } from "@/components/volunteer/registration-form";
 import { createSupabaseServerAdminClient } from "@/lib/supabase/server-admin-client";
+import { VictimsTab } from "@/components/admin/victims-tab";
 import type { Victim } from "@/lib/definitions";
-import { VictimsList } from "@/components/volunteer/victims-list";
 
 async function getVictimsData() {
     const supabase = await createSupabaseServerAdminClient();
@@ -19,18 +18,15 @@ async function getVictimsData() {
     return (victims || []) as Victim[];
 }
 
-export default async function VolunteerPage() {
+export default async function AdminVictimsPage() {
     const victims = await getVictimsData();
     return (
         <div>
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold tracking-tight mb-4">Victim Management</h1>
-                <p className="text-muted-foreground mb-6">Use the form to register new aid recipients, or manage existing recipients in the list below.</p>
+            <div className="mb-8 space-y-2">
+                <h1 className="text-3xl font-bold tracking-tight">Victim Management</h1>
+                <p className="text-muted-foreground">View and manage all registered aid recipients.</p>
             </div>
-            <div className="grid gap-8 md:grid-cols-2">
-                <RegistrationForm />
-                <VictimsList victims={victims} />
-            </div>
+            <VictimsTab victims={victims} />
         </div>
     );
 }

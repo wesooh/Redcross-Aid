@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -43,5 +44,49 @@ export async function registerVictim(formData: { fullName: string, nationalId: s
 
   revalidatePath('/volunteer');
   revalidatePath('/admin'); // To update victim list on admin page
-  return { success: `Successfully registered ${fullName} with ID: ${victimId}` };
+  return { success: `Successfully registered ${fullName}.` };
+}
+
+const DeleteVictimSchema = z.object({
+  victimId: z.string().uuid(),
+});
+
+export async function deleteVictimByVolunteer(formData: { victimId: string }) {
+  const validatedFields = DeleteVictimSchema.safeParse(formData);
+
+  if (!validatedFields.success) {
+    return {
+      error: 'Invalid Victim ID provided.',
+    };
+  }
+
+  const { victimId } = validatedFields.data;
+  const supabase = createSupabaseServerAdminClient();
+
+  // Security check: ensure the ID belongs to a 'victim' role before deleting.
+  const { data: victimProfile, error: fetchError } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', victimId)
+    .single();
+
+  if (fetchError || !victimProfile) {
+      return { error: 'Victim not found.' };
+  }
+  if (victimProfile.role !== 'victim') {
+      return { error: 'Permission denied. You can only delete victims.' };
+  }
+
+  const { error: authError } = await supabase.auth.admin.deleteUser(victimId);
+
+  if (authError) {
+    console.error('Error deleting victim by volunteer:', authError);
+    return { error: 'Failed to delete victim. ' + authError.message };
+  }
+
+  revalidatePath('/volunteer');
+  revalidatePath('/admin/victims');
+  revalidatePath('/admin'); 
+
+  return { success: 'Victim deleted successfully.' };
 }

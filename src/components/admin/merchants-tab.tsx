@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -13,6 +14,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { format } from 'date-fns';
 import { kenyanCounties } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { deleteUser } from '@/app/actions/admin';
+import { DeleteDialogButton } from '@/components/shared/delete-dialog-button';
 
 function RegisterMerchantForm() {
   const [isPending, startTransition] = useTransition();
@@ -115,6 +118,7 @@ function MerchantsList({ merchants }: { merchants: Merchant[] }) {
                             <TableHead>County</TableHead>
                             <TableHead>Phone Number</TableHead>
                             <TableHead>Date Registered</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -124,11 +128,20 @@ function MerchantsList({ merchants }: { merchants: Merchant[] }) {
                                 <TableCell>{merchant.county || 'N/A'}</TableCell>
                                 <TableCell>{merchant.phone_number || 'N/A'}</TableCell>
                                 <TableCell>{format(new Date(merchant.created_at), 'PPP')}</TableCell>
+                                <TableCell className="text-right">
+                                   <DeleteDialogButton
+                                       itemId={merchant.id}
+                                       itemName={merchant.full_name || 'merchant'}
+                                       deleteAction={deleteUser}
+                                       actionParamName="userId"
+                                       itemType="merchant"
+                                   />
+                                </TableCell>
                             </TableRow>
                         ))}
                         {merchants.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                <TableCell colSpan={5} className="text-center text-muted-foreground">
                                     No merchants found.
                                 </TableCell>
                             </TableRow>

@@ -1,10 +1,11 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
     HandHeart, LayoutDashboard, MessageCircle, QrCode, Wallet, 
-    UserCog, UserPlus, LogOut, Banknote, HeartHandshake, ShieldAlert, Store 
+    UserCog, UserPlus, LogOut, Banknote, HeartHandshake, ShieldAlert, Store, Users 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -18,11 +19,12 @@ const allNavItems = [
   { href: '/volunteer', label: 'Register Victim', icon: UserPlus, roles: ['volunteer'] },
   
   // Admin specific routes
-  { href: '/admin', label: 'Overview', icon: UserCog, roles: ['admin'] },
+  { href: '/admin', label: 'Overview', icon: UserCog, roles: ['admin'], exact: true },
   { href: '/admin/disbursement', label: 'Disburse Aid', icon: Banknote, roles: ['admin'] },
   { href: '/admin/campaigns', label: 'Campaigns', icon: HeartHandshake, roles: ['admin'] },
   { href: '/admin/merchants', label: 'Merchants', icon: Store, roles: ['admin'] },
   { href: '/admin/volunteers', label: 'Volunteers', icon: UserPlus, roles: ['admin'] },
+  { href: '/admin/victims', label: 'Victims', icon: Users, roles: ['admin'] },
   { href: '/admin/triage', label: 'PFA Triage', icon: ShieldAlert, roles: ['admin'] },
   
   // PFA Chatbot for all roles, including admin
@@ -49,23 +51,26 @@ export function MainNav({ role }: { role: Profile['role'] }) {
           <span className="sr-only">ResilienceLink</span>
         </Link>
         <TooltipProvider>
-          {navItems.map((item) => (
-            <Tooltip key={item.href}>
-              <TooltipTrigger asChild>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8',
-                    pathname === item.href ? 'bg-accent text-accent-foreground' : ''
-                  )}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span className="sr-only">{item.label}</span>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">{item.label}</TooltipContent>
-            </Tooltip>
-          ))}
+          {navItems.map((item) => {
+            const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+            return (
+                <Tooltip key={item.href}>
+                <TooltipTrigger asChild>
+                    <Link
+                    href={item.href}
+                    className={cn(
+                        'flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8',
+                        isActive ? 'bg-accent text-accent-foreground' : ''
+                    )}
+                    >
+                    <item.icon className="h-5 w-5" />
+                    <span className="sr-only">{item.label}</span>
+                    </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">{item.label}</TooltipContent>
+                </Tooltip>
+            )
+        })}
         </TooltipProvider>
       </nav>
       <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">

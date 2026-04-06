@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -137,7 +138,11 @@ export async function registerMerchant(formData: { fullName: string, email: stri
     : undefined;
 
   // This will create the user in Supabase Auth and send them a magic link to set their password
-  const { data: { user }, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email);
+  const { data: { user }, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
+      data: {
+          full_name: fullName,
+      }
+  });
 
   if (inviteError) {
     console.error('Error inviting merchant:', inviteError);
@@ -156,7 +161,7 @@ export async function registerMerchant(formData: { fullName: string, email: stri
     phone_number: formattedPhoneNumber,
     county: county,
     role: 'merchant'
-  });
+  }, { onConflict: 'id' });
 
   if (profileError) {
     console.error('Error creating merchant profile:', profileError);
@@ -194,7 +199,11 @@ export async function registerVolunteer(formData: { fullName: string, email: str
     : undefined;
 
   // This will create the user in Supabase Auth and send them a magic link to set their password
-  const { data: { user }, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email);
+  const { data: { user }, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
+      data: {
+          full_name: fullName,
+      }
+  });
 
   if (inviteError) {
     console.error('Error inviting volunteer:', inviteError);
@@ -213,7 +222,7 @@ export async function registerVolunteer(formData: { fullName: string, email: str
     phone_number: formattedPhoneNumber,
     county: county,
     role: 'volunteer'
-  });
+  }, { onConflict: 'id' });
 
   if (profileError) {
     console.error('Error creating volunteer profile:', profileError);
@@ -225,4 +234,39 @@ export async function registerVolunteer(formData: { fullName: string, email: str
   revalidatePath('/admin');
   revalidatePath('/admin/volunteers');
   return { success: `Successfully invited and registered volunteer ${fullName}.` };
+}
+
+
+const DeleteUserSchema = z.object({
+  userId: z.string().uuid(),
+});
+
+export async function deleteUser(formData: { userId: string }) {
+  const validatedFields = DeleteUserSchema.safeParse(formData);
+
+  if (!validatedFields.success) {
+    return {
+      error: 'Invalid User ID provided.',
+    };
+  }
+
+  const { userId } = validatedFields.data;
+  const supabase = createSupabaseServerAdminClient();
+
+  // Deleting the user from Supabase Auth will cascade delete their public.profiles record
+  // due to the foreign key constraint with "ON DELETE CASCADE".
+  const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+
+  if (authError) {
+    console.error('Error deleting user:', authError);
+    return { error: 'Failed to delete user. ' + authError.message };
+  }
+
+  // Revalidate all paths where user lists might appear
+  revalidatePath('/admin/merchants');
+  revalidatePath('/admin/volunteers');
+  revalidatePath('/admin/victims');
+  revalidatePath('/admin'); // for stat cards
+
+  return { success: 'User deleted successfully.' };
 }

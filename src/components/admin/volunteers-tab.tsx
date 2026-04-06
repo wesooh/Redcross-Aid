@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -13,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import type { Profile } from '@/lib/definitions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
+import { deleteUser } from '@/app/actions/admin';
+import { DeleteDialogButton } from '@/components/shared/delete-dialog-button';
 
 function RegisterVolunteerForm() {
   const [isPending, startTransition] = useTransition();
@@ -115,6 +118,7 @@ function VolunteersList({ volunteers }: { volunteers: Profile[] }) {
                             <TableHead>County</TableHead>
                             <TableHead>Phone Number</TableHead>
                             <TableHead>Date Registered</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -124,11 +128,20 @@ function VolunteersList({ volunteers }: { volunteers: Profile[] }) {
                                 <TableCell>{volunteer.county || 'N/A'}</TableCell>
                                 <TableCell>{volunteer.phone_number || 'N/A'}</TableCell>
                                 <TableCell>{format(new Date(volunteer.created_at), 'PPP')}</TableCell>
+                                <TableCell className="text-right">
+                                   <DeleteDialogButton
+                                       itemId={volunteer.id}
+                                       itemName={volunteer.full_name || 'volunteer'}
+                                       deleteAction={deleteUser}
+                                       actionParamName="userId"
+                                       itemType="volunteer"
+                                   />
+                                </TableCell>
                             </TableRow>
                         ))}
                         {volunteers.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                <TableCell colSpan={5} className="text-center text-muted-foreground">
                                     No volunteers found.
                                 </TableCell>
                             </TableRow>

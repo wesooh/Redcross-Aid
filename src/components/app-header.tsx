@@ -1,10 +1,11 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
     HandHeart, LayoutDashboard, Menu, MessageCircle, QrCode, UserCircle, Wallet, 
-    UserPlus, UserCog, Banknote, HeartHandshake, ShieldAlert, Store 
+    UserPlus, UserCog, Banknote, HeartHandshake, ShieldAlert, Store, Users 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -32,6 +33,7 @@ const allNavItems = [
     { href: '/admin/campaigns', label: 'Campaigns', icon: HeartHandshake, roles: ['admin'] },
     { href: '/admin/merchants', label: 'Merchants', icon: Store, roles: ['admin'] },
     { href: '/admin/volunteers', label: 'Volunteers', icon: UserPlus, roles: ['admin'] },
+    { href: '/admin/victims', label: 'Victims', icon: Users, roles: ['admin'] },
     { href: '/admin/triage', label: 'PFA Triage', icon: ShieldAlert, roles: ['admin'] },
     
     // PFA Chatbot for all roles, including admin
@@ -46,7 +48,7 @@ export function AppHeader({ user, profile }: { user: User, profile: Profile }) {
   const pathname = usePathname();
   const navItems = getNavItemsForRole(profile.role);
   
-  const pageTitle = allNavItems.find((item) => pathname === item.href)?.label || 'Dashboard';
+  const pageTitle = allNavItems.find((item) => pathname.startsWith(item.href))?.label || 'Dashboard';
   const displayName = profile.full_name || user.email;
 
   return (
@@ -72,7 +74,7 @@ export function AppHeader({ user, profile }: { user: User, profile: Profile }) {
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-4 px-2.5 ${
-                  pathname === item.href ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                  pathname.startsWith(item.href) ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <item.icon className="h-5 w-5" />
