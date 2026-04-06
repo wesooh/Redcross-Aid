@@ -26,10 +26,10 @@ async function getAdminPageData() {
         .lt('amount', 0); // Disbursements are negative amounts
 
     const [
-        { count: victimsCount, error: victimsError }, 
-        { count: campaignsCount, error: campaignsError },
-        { count: triageCount, error: triageError },
-        { data: disbursements, error: disbursementError }
+        victimsResult,
+        campaignsResult,
+        triageResult,
+        disbursementResult
     ] = await Promise.all([
         victimsPromise,
         campaignsPromise,
@@ -37,10 +37,15 @@ async function getAdminPageData() {
         disbursementPromise
     ]);
     
-    if (victimsError) console.error('Error fetching victims count:', victimsError);
-    if (campaignsError) console.error('Error fetching campaigns count:', campaignsError);
-    if (triageError) console.error('Error fetching triage sessions count:', triageError);
-    if (disbursementError) console.error('Error fetching disbursements:', disbursementError);
+    const { count: victimsCount, error: victimsError } = victimsResult;
+    const { count: campaignsCount, error: campaignsError } = campaignsResult;
+    const { count: triageCount, error: triageError } = triageResult;
+    const { data: disbursements, error: disbursementError } = disbursementResult;
+
+    if (victimsError) console.error('Error fetching victims count:', victimsError.message || JSON.stringify(victimsError));
+    if (campaignsError) console.error('Error fetching campaigns count:', campaignsError.message || JSON.stringify(campaignsError));
+    if (triageError) console.error('Error fetching triage sessions count:', triageError.message || JSON.stringify(triageError));
+    if (disbursementError) console.error('Error fetching disbursements:', disbursementError.message || JSON.stringify(disbursementError));
 
     const totalDisbursed = disbursements ? disbursements.reduce((sum, current) => sum - current.amount, 0) : 0;
 
