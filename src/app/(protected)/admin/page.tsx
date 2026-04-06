@@ -76,9 +76,9 @@ export default async function AdminPage() {
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
                 <StatCard title="Total Victims" value={victimsCount} icon={Users} description="Total number of registered aid recipients." />
-                <StatCard title="Total Disbursed" value={formattedTotalDisbursed} icon={Banknote} description="Total aid disbursed through all campaigns." />
-                <StatCard title="Active Campaigns" value={campaignsCount} icon={HeartHandshake} description="Number of ongoing aid campaigns." />
-                <StatCard title="Triage Alerts" value={triageCount} icon={ShieldAlert} description="Open high-risk cases needing review." />
+                <StatCard title="Total Disbursed" value={formattedTotalDisbursed} icon={Banknote} description="Total aid disbursed through all campaigns." href="/admin/disbursement"/>
+                <StatCard title="Active Campaigns" value={campaignsCount} icon={HeartHandshake} description="Number of ongoing aid campaigns." href="/admin/campaigns" />
+                <StatCard title="Triage Alerts" value={triageCount} icon={ShieldAlert} description="Open high-risk cases needing review." href="/admin/triage" />
             </div>
              <div className="bg-card border rounded-lg p-6 text-center">
                 <h2 className="text-xl font-semibold mb-2">Welcome, Admin!</h2>
