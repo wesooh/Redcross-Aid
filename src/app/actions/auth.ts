@@ -60,6 +60,8 @@ export async function login(prevState: any, formData: FormData) {
 export async function signup(prevState: any, formData: FormData) {
   const supabase = createSupabaseServerClient();
   const supabaseAdmin = createSupabaseServerAdminClient();
+  const origin = headers().get('origin');
+  const redirectUrl = `${origin}/auth/callback`;
 
   const fullName = formData.get('fullName') as string;
   const email = formData.get('email') as string;
@@ -78,8 +80,9 @@ export async function signup(prevState: any, formData: FormData) {
     email,
     password,
     options: {
+      emailRedirectTo: redirectUrl,
       data: {
-        full_name: fullName, // This data can be used by a DB trigger, but we won't rely on it.
+        full_name: fullName,
       },
     },
   });
