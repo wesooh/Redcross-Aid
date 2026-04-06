@@ -39,6 +39,7 @@ export default function ForgotPasswordPage() {
                      {state?.message ? (
                          <div className="space-y-4 text-center">
                             <p className="text-sm text-green-600 bg-green-500/10 p-3 rounded-md">{state.message}</p>
+                            <p className="text-xs text-muted-foreground">Please check your inbox (and spam folder). The link may take a few minutes to arrive.</p>
                             <div className="mt-4 text-center text-sm">
                                 <Link href="/login" className="underline hover:text-primary">
                                     Back to Login
