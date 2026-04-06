@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-
 import { createSupabaseServerClient } from '@/lib/supabase/server-client'
+import { createSupabaseServerAdminClient } from '@/lib/supabase/server-admin-client'
 
 export async function login(prevState: any, formData: FormData) {
   const supabase = createSupabaseServerClient()
@@ -23,11 +23,13 @@ export async function login(prevState: any, formData: FormData) {
   }
 
   // Fetch role right after login to perform a direct, role-based redirect.
-  const { data: profile } = await supabase
+  // Use the ADMIN client to bypass RLS for this critical check.
+  const supabaseAdmin = createSupabaseServerAdminClient();
+  const { data: profile } = await supabaseAdmin
     .from('profiles')
     .select('role')
     .eq('id', data.user.id)
-    .single()
+    .single();
 
   revalidatePath('/', 'layout')
 
@@ -46,8 +48,10 @@ export async function login(prevState: any, formData: FormData) {
       redirect('/dashboard');
       break;
     default:
-      // This is a fallback. If a user has no role, they go to the general dashboard.
-      redirect('/dashboard');
-      break;
+      // This is a fallback. If a user has no role, log them out and show an error.
+      await supabase.auth.signOut();
+      return {
+        error: 'Login failed: Could not determine user role. Please contact support.',
+      }
   }
 }

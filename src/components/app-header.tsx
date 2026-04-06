@@ -17,12 +17,12 @@ import type { User } from '@supabase/supabase-js';
 import type { Profile } from '@/lib/definitions';
 
 const allNavItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'volunteer', 'merchant', 'victim'] },
-  { href: '/wallet', label: 'My Wallet', icon: Wallet, roles: ['admin', 'victim'] },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['volunteer', 'merchant', 'victim'] },
+  { href: '/wallet', label: 'My Wallet', icon: Wallet, roles: ['victim'] },
   { href: '/merchant', label: 'Merchant Terminal', icon: QrCode, roles: ['admin', 'merchant'] },
   { href: '/pfa-chatbot', label: 'PFA Support', icon: MessageCircle, roles: ['admin', 'volunteer', 'merchant', 'victim'] },
   { href: '/volunteer', label: 'Register Victim', icon: UserPlus, roles: ['admin', 'volunteer'] },
-  { href: '/admin', label: 'Admin', icon: UserCog, roles: ['admin'] },
+  { href: '/admin', label: 'Admin Dashboard', icon: UserCog, roles: ['admin'] },
 ];
 
 function getNavItemsForRole(role: Profile['role']) {
@@ -50,7 +50,7 @@ export function AppHeader({ user, profile }: { user: User, profile: Profile }) {
         <SheetContent side="left" className="sm:max-w-xs">
           <nav className="grid gap-6 text-lg font-medium">
             <Link
-              href="/dashboard"
+              href={profile.role === 'admin' ? '/admin' : '/dashboard'}
               className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
             >
               <HandHeart className="h-5 w-5 transition-all group-hover:scale-110" />

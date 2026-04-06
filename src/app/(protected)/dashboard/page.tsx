@@ -1,7 +1,27 @@
 import { OverviewCard } from '@/components/dashboard/overview-card';
-import { Wallet, QrCode, MessageCircle } from 'lucide-react';
+import { Wallet, MessageCircle } from 'lucide-react';
+import { createSupabaseServerClient } from '@/lib/supabase/server-client';
+import { createSupabaseServerAdminClient } from '@/lib/supabase/server-admin-client';
+import { redirect } from 'next/navigation';
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user) {
+    const supabaseAdmin = createSupabaseServerAdminClient();
+    const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+    
+    // An admin should never see this page; redirect them to the real admin dashboard.
+    if (profile?.role === 'admin') {
+        redirect('/admin');
+    }
+  }
+
   return (
     <div className="container mx-auto">
       <div className="mb-8">
@@ -15,13 +35,6 @@ export default function DashboardPage() {
           link="/wallet"
           linkText="Go to My Wallet"
           Icon={Wallet}
-        />
-        <OverviewCard
-          title="Merchant Terminal"
-          description="Process payments from aid recipients by scanning their QR code or entering a code."
-          link="/merchant"
-          linkText="Open Terminal"
-          Icon={QrCode}
         />
         <OverviewCard
           title="PFA Support Chat"
