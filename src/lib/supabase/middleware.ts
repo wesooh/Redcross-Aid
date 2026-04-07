@@ -2,9 +2,15 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
+  // The 'x-next-pathname' header is required by the protected layout to handle
+  // role-based authorization. We add it to the request headers that will be
+  // passed down to server components.
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-next-pathname', request.nextUrl.pathname)
+
   let response = NextResponse.next({
     request: {
-      headers: request.headers,
+      headers: requestHeaders,
     },
   })
 
