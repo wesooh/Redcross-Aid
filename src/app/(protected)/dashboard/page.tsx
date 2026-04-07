@@ -1,27 +1,11 @@
+'use client';
+
 import { OverviewCard } from '@/components/dashboard/overview-card';
 import { Wallet, MessageCircle } from 'lucide-react';
-import { createSupabaseServerClient } from '@/lib/supabase/server-client';
-import { createSupabaseServerAdminClient } from '@/lib/supabase/server-admin-client';
-import { redirect } from 'next/navigation';
 
-export default async function DashboardPage() {
-  const supabase = createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (user) {
-    const supabaseAdmin = createSupabaseServerAdminClient();
-    const { data: profile } = await supabaseAdmin
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-    
-    // An admin should never see this page; redirect them to the real admin dashboard.
-    if (profile?.role === 'admin') {
-        redirect('/admin');
-    }
-  }
-
+// The ProtectedLayout now handles all authentication and role-based redirects.
+// This page can now be a simple component that just displays content.
+export default function DashboardPage() {
   return (
     <div className="container mx-auto">
       <div className="mb-8">
