@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { login } from '@/app/actions/auth';
 import { useActionState, useState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { HandHeart, Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -25,6 +25,14 @@ export default function LoginPage() {
     const [state, formAction] = useActionState(login, undefined);
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const [infoMessage, setInfoMessage] = useState('');
+
+    useEffect(() => {
+        if (searchParams.get('message') === 'verification_success') {
+            setInfoMessage('Your email has been verified successfully. Please log in to continue.');
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         if (state?.success) {
@@ -72,6 +80,11 @@ export default function LoginPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
+                    {infoMessage && (
+                        <p className="mb-4 text-sm text-green-600 bg-green-500/10 p-3 rounded-md">
+                            {infoMessage}
+                        </p>
+                    )}
                     <form action={formAction} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>

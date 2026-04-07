@@ -4,16 +4,14 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  // if "next" is in param, use it as the redirect URL
-  const next = searchParams.get('next') ?? '/dashboard'
 
   if (code) {
     const supabase = createSupabaseServerClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      // Redirecting directly to the dashboard to avoid a multi-redirect chain
-      // that can be blocked by browser security.
-      return NextResponse.redirect(`${origin}${next}`)
+      // On successful email verification, redirect to the login page with a success message.
+      // This provides a better user experience than a direct, sometimes jarring, redirect to the dashboard.
+      return NextResponse.redirect(`${origin}/login?message=verification_success`)
     }
   }
 
