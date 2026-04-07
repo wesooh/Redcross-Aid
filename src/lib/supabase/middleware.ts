@@ -30,11 +30,6 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
-  // GUEST ADMIN ACCESS: Allow unauthenticated requests to all admin routes and the PFA chatbot
-  if (!user && (pathname.startsWith('/admin') || pathname.startsWith('/pfa-chatbot'))) {
-    return response;
-  }
-
   const protectedRoutes = [
       '/dashboard',
       '/admin',
@@ -46,20 +41,15 @@ export async function updateSession(request: NextRequest) {
   
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
-  // Rule 1: If user is not logged in, they can only access public routes (and guest admin).
-  if (!user) {
-    if (isProtectedRoute) {
-        // If they try to access a protected route, redirect to login.
-        return NextResponse.redirect(new URL('/login', request.url))
-    }
-    // Otherwise, allow access to the public route.
-    return response;
+  // Rule 1: If user is not logged in and tries to access a protected route, redirect to login.
+  if (!user && isProtectedRoute) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // --- From here, we know the user is logged in ---
+  // --- From here, we know the user is logged in OR is on a public route. ---
 
   // Rule 2: If a logged-in user tries to access the login page or root, redirect them to their dashboard.
-  if (pathname === '/login' || pathname === '/') {
+  if (user && (pathname === '/login' || pathname === '/signup' || pathname === '/')) {
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
     const role = profile?.role;
     switch(role) {
@@ -71,8 +61,8 @@ export async function updateSession(request: NextRequest) {
     }
   }
   
-  // Rule 3: Enforce role-based access for protected routes.
-  if (isProtectedRoute) {
+  // Rule 3: Enforce role-based access for protected routes for logged-in users.
+  if (user && isProtectedRoute) {
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
     const role = profile?.role;
 
@@ -82,7 +72,7 @@ export async function updateSession(request: NextRequest) {
             return NextResponse.redirect(new URL('/dashboard', request.url));
         }
     } else {
-        // Check authorization for specific roles. Admins can access most pages.
+        // Check authorization for specific roles.
         if (pathname.startsWith('/admin') && role !== 'admin') {
             return NextResponse.redirect(new URL('/dashboard', request.url));
         }

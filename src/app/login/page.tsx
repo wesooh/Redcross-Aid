@@ -42,7 +42,7 @@ export default function LoginPage() {
                     </div>
                     <CardTitle className="text-2xl text-center">Redcross Trust Login</CardTitle>
                     <CardDescription className="text-center">
-                        Enter your credentials or continue as a guest.
+                        Enter your email and password to access your dashboard.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -98,17 +98,6 @@ export default function LoginPage() {
                             Sign up
                         </Link>
                     </div>
-
-                    <div className="relative flex items-center py-4">
-                        <div className="flex-grow border-t border-muted"></div>
-                        <span className="flex-shrink mx-4 text-xs text-muted-foreground">OR</span>
-                        <div className="flex-grow border-t border-muted"></div>
-                    </div>
-
-                    <Button variant="secondary" className="w-full" asChild>
-                        <Link href="/admin">Continue as Guest Admin</Link>
-                    </Button>
-
                 </CardContent>
             </Card>
         </div>
