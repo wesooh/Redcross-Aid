@@ -5,10 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { login } from '@/app/actions/auth';
-import { useActionState, useState, useEffect } from 'react';
+import { useActionState, useState, useEffect, Suspense } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { HandHeart, Eye, EyeOff } from 'lucide-react';
+import { HandHeart, Eye, EyeOff, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -21,7 +21,8 @@ function LoginButton() {
     );
 }
 
-export default function LoginPage() {
+// The actual login page content is now in this component
+function LoginPageContent() {
     const [state, formAction] = useActionState(login, undefined);
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
@@ -141,4 +142,26 @@ export default function LoginPage() {
             </Card>
         </div>
     );
+}
+
+// The default export for the page now wraps the content in a Suspense boundary
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="relative flex min-h-screen items-center justify-center p-4">
+                 <Image
+                    src="/redcross.jpg"
+                    alt="Red Cross humanitarian aid background"
+                    fill
+                    className="object-cover"
+                    priority
+                    sizes="100vw"
+                />
+                <div className="absolute inset-0 bg-black/40" />
+                <Loader2 className="h-10 w-10 animate-spin text-white z-10" />
+            </div>
+        }>
+            <LoginPageContent />
+        </Suspense>
+    )
 }
