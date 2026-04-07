@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath } from 'next/revalidate'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/supabase/server-client'
@@ -98,7 +98,26 @@ export async function signup(prevState: any, formData: FormData) {
       }
   }
 
-  // The database trigger will create the profile. We no longer need to do it here.
+  // Explicitly create the profile record using the admin client.
+  // This is more reliable than relying on a database trigger.
+  const supabaseAdmin = createSupabaseServerAdminClient();
+  const { error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .insert({
+        id: authData.user.id,
+        full_name: fullName,
+        email: email,
+        role: 'victim' // Self-registered users default to 'victim'
+    });
+
+  if (profileError) {
+      console.error("Critical: Failed to create profile for new user.", profileError);
+      // This is a critical error. The user has an auth account but no profile.
+      // Inform the user clearly.
+      return {
+          error: "Your account was created, but setting up your user profile failed. Please contact support."
+      }
+  }
 
   return {
     message: 'Sign up successful! Please check your email for a verification link to complete your registration.',

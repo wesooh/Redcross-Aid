@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
+import { createSupabaseServerAdminClient } from './server-admin-client';
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
@@ -50,20 +51,24 @@ export async function updateSession(request: NextRequest) {
 
   // Rule 2: If a logged-in user tries to access the login page or root, redirect them to their dashboard.
   if (user && (pathname === '/login' || pathname === '/signup' || pathname === '/')) {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    // Use the admin client here for a reliable role check that bypasses RLS.
+    const supabaseAdmin = createSupabaseServerAdminClient();
+    const { data: profile } = await supabaseAdmin.from('profiles').select('role').eq('id', user.id).single();
     const role = profile?.role;
     switch(role) {
         case 'admin': return NextResponse.redirect(new URL('/admin', request.url));
         case 'volunteer': return NextResponse.redirect(new URL('/volunteer', request.url));
         case 'merchant': return NextResponse.redirect(new URL('/merchant', request.url));
         case 'victim': return NextResponse.redirect(new URL('/dashboard', request.url));
-        default: return NextResponse.redirect(new URL('/dashboard', request.url));
+        default: return NextResponse.redirect(new URL('/dashboard', request.url)); // Fallback
     }
   }
   
   // Rule 3: Enforce role-based access for protected routes for logged-in users.
   if (user && isProtectedRoute) {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    // Use the admin client here for a reliable role check that bypasses RLS.
+    const supabaseAdmin = createSupabaseServerAdminClient();
+    const { data: profile } = await supabaseAdmin.from('profiles').select('role').eq('id', user.id).single();
     const role = profile?.role;
 
     // If a user has no profile/role yet, they can only access general pages.
