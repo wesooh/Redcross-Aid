@@ -6,7 +6,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server-client';
 import { createSupabaseServerAdminClient } from '@/lib/supabase/server-admin-client';
 import { redirect } from 'next/navigation';
 import type { Profile } from '@/lib/definitions';
-import type { User } from '@supabase/supabase-js';
+import { headers } from 'next/headers';
 
 // This is now a Server Component to correctly handle session and profile data.
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
@@ -35,6 +35,35 @@ export default async function ProtectedLayout({ children }: { children: React.Re
     redirect('/logout');
   }
 
+  // --- Role-Based Authorization ---
+  // The logic that was previously in the middleware is now centralized here.
+  const pathname = headers().get('x-next-pathname') ?? '';
+  const role = profile.role;
+
+  // Handle initial redirect from generic '/dashboard' to the correct role-specific page.
+  if (pathname === '/dashboard') {
+      switch(role) {
+          case 'admin': redirect('/admin'); break;
+          case 'volunteer': redirect('/volunteer'); break;
+          case 'merchant': redirect('/merchant'); break;
+          // if role is 'victim', they stay on '/dashboard'
+      }
+  }
+
+  // Enforce role-based access for all protected routes.
+  if (pathname.startsWith('/admin') && role !== 'admin') {
+      redirect('/dashboard'); 
+  }
+  if (pathname.startsWith('/volunteer') && !['admin', 'volunteer'].includes(role)) {
+      redirect('/dashboard');
+  }
+  if (pathname.startsWith('/merchant') && !['admin', 'merchant'].includes(role)) {
+      redirect('/dashboard');
+  }
+  if (pathname.startsWith('/wallet') && !['admin', 'victim'].includes(role)) {
+      redirect('/dashboard');
+  }
+  
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
       {/* MainNav and AppHeader are Client Components receiving server-fetched data as props */}
