@@ -29,7 +29,12 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   
   // If there's an auth user but no profile, it's an inconsistent state.
   // Log them out to allow them to re-register or contact support.
-  if (error || !profile) {
+  if (error) {
+    console.error(`Error fetching profile for user ${user.id}:`, error.message);
+    redirect('/logout');
+  }
+  if (!profile) {
+    console.error(`CRITICAL: No profile found for authenticated user ${user.id}. This is likely due to a missing or incorrect SUPABASE_SERVICE_ROLE_KEY in your environment variables.`);
     redirect('/logout');
   }
   

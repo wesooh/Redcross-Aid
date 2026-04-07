@@ -36,9 +36,9 @@ export function TransactionsTable({ transactions }: { transactions: Transaction[
                 <TableCell
                   className={cn('text-right font-semibold', tx.amount >= 0 ? 'text-green-600' : 'text-destructive')}
                 >
-                  {tx.amount >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', {
+                  {tx.amount >= 0 ? '+' : ''}{new Intl.NumberFormat('en-KE', {
                     style: 'currency',
-                    currency: 'USD',
+                    currency: 'KES',
                   }).format(tx.amount)}
                 </TableCell>
               </TableRow>

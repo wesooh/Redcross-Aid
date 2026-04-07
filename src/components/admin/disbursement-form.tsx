@@ -45,7 +45,7 @@ export function DisbursementForm({ victims, campaigns }: { victims: Victim[]; ca
       } else {
         toast({
           title: 'Disbursement Successful',
-          description: `Disbursed $${amount.toFixed(2)} to ${victimIds.length} victim(s) for campaign.`,
+          description: `Disbursed KES ${amount.toFixed(2)} to ${victimIds.length} victim(s).`,
         });
         setFormKey(Date.now()); // Reset form
         setSelectedCampaign(undefined);
