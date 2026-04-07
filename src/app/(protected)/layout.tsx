@@ -2,42 +2,30 @@
 import { AppHeader } from '@/components/app-header';
 import { MainNav } from '@/components/main-nav';
 import { Toaster } from '@/components/ui/toaster';
-import { createSupabaseServerClient } from '@/lib/supabase/server-client';
-import { createSupabaseServerAdminClient } from '@/lib/supabase/server-admin-client';
 import { redirect } from 'next/navigation';
 import type { Profile } from '@/lib/definitions';
 import { headers } from 'next/headers';
+import type { User } from '@supabase/supabase-js';
 
-// This is now a Server Component to correctly handle session and profile data.
+// This is now a Server Component that gets its data from the middleware via headers.
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const headersList = headers();
+  const userString = headersList.get('x-user');
+  const profileString = headersList.get('x-profile');
+  const pathname = headersList.get('x-next-pathname') ?? '';
 
-  if (!user) {
-    // If no user is authenticated, always redirect to login.
-    // The middleware should have already caught this, but this is a final safeguard.
+  // If the middleware didn't add the user header, something is wrong.
+  // This is a failsafe that redirects to login.
+  if (!userString || !profileString) {
     redirect('/login');
   }
 
-  // For a real, logged-in user, fetch their profile.
-  // We use the ADMIN client to bypass RLS in case of faulty policies, preventing login loops.
-  const supabaseAdmin = createSupabaseServerAdminClient();
-  const { data: profile, error } = await supabaseAdmin
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
-  if (error || !profile) {
-    // This can happen due to RLS issues, database errors, or if the profile wasn't created.
-    // Redirecting to logout clears the session and prevents infinite loops.
-    console.error(`Could not fetch a valid profile for user ${user.id}. Logging out. Reason: ${error?.message}`);
-    redirect('/logout');
-  }
-
+  // Safely parse the user and profile from the headers.
+  const user: User = JSON.parse(userString);
+  const profile: Profile = JSON.parse(profileString);
+  
   // --- Role-Based Authorization ---
-  // The logic that was previously in the middleware is now centralized here.
-  const pathname = headers().get('x-next-pathname') ?? '';
+  // The layout is now the single source of truth for what a user can see.
   const role = profile.role;
 
   // Handle initial redirect from generic '/dashboard' to the correct role-specific page.
