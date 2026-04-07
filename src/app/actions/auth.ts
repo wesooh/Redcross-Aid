@@ -34,21 +34,9 @@ export async function login(prevState: any, formData: FormData) {
 
   revalidatePath('/', 'layout')
 
-  // IMPORTANT: This switch statement directs users to the correct dashboard.
-  switch(profile?.role) {
-    case 'admin':
-      redirect('/admin');
-      break;
-    case 'volunteer':
-      redirect('/volunteer');
-      break;
-    case 'merchant':
-      redirect('/merchant');
-      break;
-    case 'victim':
-      redirect('/dashboard');
-      break;
-    default:
+  if (profile?.role) {
+      return { success: true, role: profile.role };
+  } else {
       // This is a fallback. If a user has no role, log them out and show an error.
       await supabase.auth.signOut();
       return {

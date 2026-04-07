@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { login } from '@/app/actions/auth';
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
+import { useRouter } from 'next/navigation';
 import { HandHeart, Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -23,6 +24,31 @@ function LoginButton() {
 export default function LoginPage() {
     const [state, formAction] = useActionState(login, undefined);
     const [showPassword, setShowPassword] = useState(false);
+    const router = useRouter();
+
+    useEffect(() => {
+        if (state?.success) {
+            // Role-based redirect on the client
+            switch(state.role) {
+                case 'admin':
+                    router.push('/admin');
+                    break;
+                case 'volunteer':
+                    router.push('/volunteer');
+                    break;
+                case 'merchant':
+                    router.push('/merchant');
+                    break;
+                case 'victim':
+                    router.push('/dashboard');
+                    break;
+                default:
+                    // Fallback to a generic dashboard if role is unknown
+                    router.push('/dashboard');
+                    break;
+            }
+        }
+    }, [state, router]);
 
     return (
         <div className="relative flex min-h-screen items-center justify-center p-4">
